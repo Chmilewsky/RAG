@@ -2,4 +2,4 @@
 __pycache__/
 */__pycache__
 /*.txt
-*/vllm-0.10.1
+vllm-0.10.1
