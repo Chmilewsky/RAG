@@ -1,0 +1,206 @@
+[
+    {
+        "id": "chnk_eff6f55261de4a8fa009e0f098dd7e1b",
+        "text": "# Releasing vLLM\n\nvLLM releases offer a reliable version of the code base, packaged into a binary format that can be conveniently accessed via PyPI. These releases also serve as key milestones for the development team to communicate with the community about newly available features, improvements, and upcoming changes that could affect users, including potential breaking changes.\n\n",
+        "start_index": 0,
+        "end_index": 383,
+        "token_count": 383,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_14feb42df46049c899ca015b93375e32",
+        "text": "## Release Versioning\n\nvLLM uses a “right-shifted” versioning scheme where a new patch release is out every 2 weeks. And patch releases contain features and bug fixes (as opposed to semver where patch release contains only backwards-compatible bug fixes). When critical fixes need to be made, special release post1 is released.\n\n",
+        "start_index": 383,
+        "end_index": 712,
+        "token_count": 329,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_c78d3447d4834391a22ead017a1b7dd7",
+        "text": "* _major_ major architectural milestone and when incompatible API changes are made, similar to PyTorch 2.0.\n* _minor_ major features\n* _patch_ features and backwards-compatible bug fixes\n* _post1_ or _patch-1_ backwards-compatible bug fixes, either explicit or implicit post release\n\n",
+        "start_index": 712,
+        "end_index": 996,
+        "token_count": 284,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_9154026c45994cb5a5cb6dc99ec6d307",
+        "text": "## Release Cadence\n\nPatch release is released on bi-weekly basis. Post release 1-3 days after patch release and uses same branch as patch release.\nFollowing is the release cadence for year 2025. All future release dates below are tentative. Please note: Post releases are optional.\n\n",
+        "start_index": 996,
+        "end_index": 1279,
+        "token_count": 283,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_f996de4959a54affa7d13a4a7e3fbb7b",
+        "text": "\n## Release branch\n\nEach release is built from a dedicated release branch.\n\n",
+        "start_index": 1788,
+        "end_index": 1864,
+        "token_count": 76,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_0b18b949b53e4dc68ca0699fe277721e",
+        "text": "* For _major_, _minor_, _patch_ releases, the release branch cut is performed 1-2 days before release is live.\n* For post releases, previously cut release branch is reused\n* Release builds are triggered via push to RC tag like vX.Y.Z-rc1 . This enables us to build and test multiple RCs for each release.\n* Final tag : vX.Y.Z does not trigger the build but used for Release notes and assets.\n",
+        "start_index": 1864,
+        "end_index": 2256,
+        "token_count": 392,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_5466ae30e4bd422a98d8e8edc7d170ad",
+        "text": "* After branch cut is created we monitor the main branch for any reverts and apply these reverts to a release branch.\n\n",
+        "start_index": 2256,
+        "end_index": 2375,
+        "token_count": 119,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_69c5bb97c8184710a1fd434d36f72a9e",
+        "text": "## Release Cherry-Pick Criteria\n\nAfter branch cut, we approach finalizing the release branch with clear criteria on what cherry picks are allowed in. Note: a cherry pick is a process to land a PR in the release branch after branch cut. These are typically limited to ensure that the team has sufficient time to complete a thorough round of testing on a stable code base.\n\n",
+        "start_index": 2375,
+        "end_index": 2747,
+        "token_count": 372,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_96f986b0c96b488c8ecbd1dda9b1316c",
+        "text": "* Regression fixes - that address functional/performance regression against the most recent release (e.g. 0.7.0 for 0.7.1 release)\n* Critical fixes - critical fixes for severe issue such as silent incorrectness, backwards compatibility, crashes, deadlocks, (large) memory leaks\n* Fixes to new features introduced in the most recent release (e.g. 0.7.0 for 0.7.1 release)\n* Documentation improvements\n* Release branch specific changes (e.g. change version identifiers or CI fixes)\n\n",
+        "start_index": 2747,
+        "end_index": 3228,
+        "token_count": 481,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_7368e6b40fa44ce08cd2440412883c30",
+        "text": "Please note: **No feature work allowed for cherry picks**. All PRs that are considered for cherry-picks need to be merged on trunk, the only exception are Release branch specific changes.\n\n## Manual validations\n\n",
+        "start_index": 3228,
+        "end_index": 3440,
+        "token_count": 212,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_9c07f74b55554126b1ca435724fab7ab",
+        "text": "### E2E Performance Validation\n\nBefore each release, we perform end-to-end performance validation to ensure no regressions are introduced. This validation uses the [vllm-benchmark workflow](https://github.com/pytorch/pytorch-integration-testing/actions/workflows/vllm-benchmark.yml) on PyTorch CI.\n\n**Current Coverage:**\n\n* Models: Llama3, Llama4, and Mixtral\n* Hardware: NVIDIA H100 and AMD MI300x\n* _Note: Coverage may change based on new model releases and hardware availability_\n\n",
+        "start_index": 3440,
+        "end_index": 3924,
+        "token_count": 484,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_702c2bf6b35a49a385d07279fd6e0c60",
+        "text": "**Performance Validation Process:**\n\n**Step 1: Get Access**\nRequest write access to the [pytorch/pytorch-integration-testing](https://github.com/pytorch/pytorch-integration-testing) repository to run the benchmark workflow.\n\n**Step 2: Review Benchmark Setup**\nFamiliarize yourself with the benchmark configurations:\n\n",
+        "start_index": 3924,
+        "end_index": 4241,
+        "token_count": 317,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_ab8a36c3e3514b45b6b45915527a8af0",
+        "text": "* [CUDA setup](https://github.com/pytorch/pytorch-integration-testing/tree/main/vllm-benchmarks/benchmarks/cuda)\n* [ROCm setup](https://github.com/pytorch/pytorch-integration-testing/tree/main/vllm-benchmarks/benchmarks/rocm)\n\n**Step 3: Run the Benchmark**\nNavigate to the [vllm-benchmark workflow](https://github.com/pytorch/pytorch-integration-testing/actions/workflows/vllm-benchmark.yml) and configure:\n\n",
+        "start_index": 4241,
+        "end_index": 4649,
+        "token_count": 408,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_5f2edae5750949bf887d78519d583dca",
+        "text": "* **vLLM branch**: Set to the release branch (e.g., `releases/v0.9.2`)\n* **vLLM commit**: Set to the RC commit hash\n\n**Step 4: Review Results**\nOnce the workflow completes, benchmark results will be available on the [vLLM benchmark dashboard](https://hud.pytorch.org/benchmark/llms?repoName=vllm-project%2Fvllm) under the corresponding branch and commit.\n\n",
+        "start_index": 4649,
+        "end_index": 5005,
+        "token_count": 356,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_87b606f832c74147b0088c101583ec26",
+        "text": "**Step 5: Performance Comparison**\nCompare the current results against the previous release to verify no performance regressions have occurred. Here is an\n",
+        "start_index": 5005,
+        "end_index": 5160,
+        "token_count": 155,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_364fb27582924c1e8b96aec9839efd78",
+        "text": "example of [v0.9.1 vs v0.9.2](https://hud.pytorch.org/benchmark/llms?startTime=Thu%2C%2017%20Apr%202025%2021%3A43%3A50%20GMT&stopTime=Wed%2C%2016%20Jul%202025%2021%3A43%3A50%20GMT&granularity=week&lBranch=releases/v0.9.1&lCommit=b6553be1bc75f046b00046a4ad7576364d03c835&rBranch=releases/v0.9.2&rCommit=a5dd03c1ebc5e4f56f3c9d3dc0436e9c582c978f&repoName=vllm-project%2Fvllm&benchmarkName=&modelName=All%20Models&backendName=All%20Backends&modeName=All%20Modes&dtypeName=All%20DType&deviceName=All%20Dev",
+        "start_index": 5160,
+        "end_index": 5660,
+        "token_count": 500,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    },
+    {
+        "id": "chnk_5f0639f3aa6a4963b98fbe94d72091b6",
+        "text": "ices&archName=All%20Platforms).\n",
+        "start_index": 5660,
+        "end_index": 5692,
+        "token_count": 32,
+        "context": null,
+        "embedding": null,
+        "metadata": {
+            "filename": "RELEASE.md"
+        }
+    }
+]

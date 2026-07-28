@@ -7,7 +7,7 @@ install:
 	@uv sync
 	@echo "✅ $(GREEN)Environment ready !$(RESET)"
 run:
-	@echo "🚀 $(YELLOW)Project launch... with Qwen3-0.6B$(RESET)"
+	@echo "🚀 $(YELLOW)Project launch..$(RESET)"
 	@uv run python3 -m src
 
 debug:
