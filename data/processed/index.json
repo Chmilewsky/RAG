@@ -1,0 +1,1 @@
+{"text": "@pytest_asyncio.fixture\nasync def client(server: RemoteOpenAIServer):\n    async with server.get_async_client() as async_client:\n        yield async_client\n", "question_id": "xx", "question": "xx", "answer": "xx", "sources": [{"file_path": "vllm-0.10.1/tests/tool_use/conftest.py", "first_character_index": 1985, "last_character_index": 2140}]}

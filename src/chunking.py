@@ -1,4 +1,5 @@
-from chonkie import Pipeline
+from chonkie import Pipeline, CodeChunker
+from magika import Magika
 from pathlib import Path
 import json
 
@@ -8,6 +9,10 @@ class FileChunker:
                  dataset_path: str = "./vllm-0.10.1") -> None:
         self.data_path = dataset_path
         self.chunk_size = chunk_size
+        self.m = Magika()
+        self.output_path: Path = Path("chunk_data.jsonl")
+        if self.output_path.exists():
+            self.output_path.unlink()
 
     def __call__(self) -> None:
         """Default action"""
@@ -34,32 +39,56 @@ class FileChunker:
             self.py_chonking(data)
         elif data.suffix == ".md":
             self.md_chonking(data)
-        elif data.suffix == ".pdf":
-            self.pdf_chonking(data)
-        elif data.suffix == ".txt":
-            self.txt_chonking(data)
+        elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
+            self.magika_chonking(data)
 
     def md_chonking(self, data) -> None:
         data_path = str(data)
-        print(data_path)
+        # print(data_path)
         md_pipeline = (
             Pipeline().fetch_from(
                 "file", path=data_path)
             .process_with("markdown")
             .chunk_with("recursive", chunk_size=self.chunk_size,
                         tokenizer="character", recipe="markdown").run())
-        output_path: str = "chunk_data.jsonl"
-        with open(output_path, "a", encoding="UTF-8") as f:
+        with open(self.output_path, "a", encoding="UTF-8") as f:
+
             for chunk in md_pipeline.chunks:
                 chunk.metadata["file_path"] = data_path
                 dict_chunk = chunk.to_dict()
                 f.write(json.dumps(dict_chunk, ensure_ascii=False) + "\n")
 
     def py_chonking(self, data) -> None:
-        pass
+        data_path = str(data)
+        # print(data_path)
+        py_pipeline = (
+            Pipeline().fetch_from(
+                "file", path=data_path)
 
-    def pdf_chonking(self, data) -> None:
-        pass
+            .chunk_with("code", language="python", chunk_size=self.chunk_size,
+                        tokenizer="character").run())
+        with open(self.output_path, "a", encoding="UTF-8") as f:
+            for chunk in py_pipeline.chunks:
+                chunk.metadata["file_path"] = data_path
+                dict_chunk = chunk.to_dict()
+                f.write(json.dumps(dict_chunk, ensure_ascii=False) + "\n")
 
-    def txt_chonking(self, data) -> None:
-        pass
+    def magika_chonking(self, data) -> None:
+        data_path = str(data)
+        res = self.m.identify_path(data_path)
+        lang = res.output.label
+        try:
+            magika_pipeline = (
+                Pipeline().fetch_from(
+                    "file", path=data_path)
+
+                .chunk_with("code", language=lang,
+                            chunk_size=self.chunk_size,
+                            tokenizer="character").run())
+            with open(self.output_path, "a", encoding="UTF-8") as f:
+                for chunk in magika_pipeline.chunks:
+                    chunk.metadata["file_path"] = data_path
+                    dict_chunk = chunk.to_dict()
+                    f.write(json.dumps(dict_chunk, ensure_ascii=False) + "\n")
+        except Exception:
+            pass

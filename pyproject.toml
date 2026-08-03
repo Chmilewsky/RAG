@@ -6,8 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "bm25s>=0.3.10",
-    "chonkie[hub]>=1.7.0",
+    "chonkie[code,hub]>=1.7.0",
     "fire>=0.7.1",
+    "magika>=1.0.3",
     "torch>=2.13.0",
     "tqdm>=4.70.0",
 ]
