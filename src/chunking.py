@@ -1,5 +1,6 @@
 from chonkie import Pipeline
-import os
+from pathlib import Path
+import json
 
 
 class FileChunker:
@@ -13,51 +14,52 @@ class FileChunker:
         self.folder_or_file()
 
     def folder_or_file(self) -> None:
-        if not os.path.exists(self.data_path):
+        p = Path(self.data_path)
+        if not p.exists():
             print("no file")
-        elif os.path.isdir(self.data_path):
+        elif p.is_dir():
             print("folder")
-            self.folder_looping(self.data_path)
-        elif os.path.isfile(self.data_path):
+            self.folder_looping(p)
+        elif p.is_file():
             print("file")
-            self.file_type_filter(self.data_path)
+            self.file_type_filter(p)
 
-    def folder_looping(self, data):
-        for root, dirs, files in os.walk(data):
+    def folder_looping(self, data) -> None:
+        for item in data.rglob("*"):
+            self.file_type_filter(item)
 
-            print(files)
+    def file_type_filter(self, data) -> None:
 
-    def file_type_filter(self, data):
-        name, ext = os.path.splitext(data)
-        print(ext)
-        if ext == ".py":
+        if data.suffix == ".py":
             self.py_chonking(data)
-        elif ext == ".md":
+        elif data.suffix == ".md":
             self.md_chonking(data)
-        elif ext == ".pdf":
+        elif data.suffix == ".pdf":
             self.pdf_chonking(data)
-        elif ext == ".txt":
+        elif data.suffix == ".txt":
             self.txt_chonking(data)
 
-    def md_chonking(self, data):
-        print(data)
+    def md_chonking(self, data) -> None:
+        data_path = str(data)
+        print(data_path)
         md_pipeline = (
             Pipeline().fetch_from(
-                "file", path=data)
+                "file", path=data_path)
             .process_with("markdown")
             .chunk_with("recursive", chunk_size=self.chunk_size,
                         tokenizer="character", recipe="markdown").run())
-        for chunk in md_pipeline.chunks:
-            chunk.metadata["full_path"] = data
-            print("\n----\n")
-            print(f"{chunk.metadata}")
-            print(chunk)
+        output_path: str = "chunk_data.jsonl"
+        with open(output_path, "a", encoding="UTF-8") as f:
+            for chunk in md_pipeline.chunks:
+                chunk.metadata["file_path"] = data_path
+                dict_chunk = chunk.to_dict()
+                f.write(json.dumps(dict_chunk, ensure_ascii=False) + "\n")
 
-    def py_chonking(self, data):
+    def py_chonking(self, data) -> None:
         pass
 
-    def pdf_chonking(self, data):
+    def pdf_chonking(self, data) -> None:
         pass
 
-    def txt_chonking(self, data):
+    def txt_chonking(self, data) -> None:
         pass

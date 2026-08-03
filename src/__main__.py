@@ -1,10 +1,10 @@
 import fire
-from src.chunking import FileChunker
+from src.run import Run
 
 
 def main():
     # test = FileChunker()
-    fire.Fire(FileChunker)
+    fire.Fire(Run)
 
 
 if __name__ == "__main__":
