@@ -48,9 +48,6 @@ class Indexing:
                 start = self.chunks[index]["start_index"]
                 end = self.chunks[index]["end_index"]
 
-                # Sécurité : force la limite à 2000 caractères max
-                if end - start > 2000:
-                    end = start + 2000
                 retrieved_sources.append(
                     {
                         "file_path": self.chunks[index]["metadata"]["file_path"],
