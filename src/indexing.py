@@ -36,40 +36,42 @@ class Indexing:
 
         with open(code_question_path, "r", encoding="UTF-8") as f:
             question = json.load(f)
-        question_list_size = len(question["rag_questions"])
-        for i in range(question_list_size):
-            # print(question["rag_questions"][i]["question"])
-            # self.question_str.append(question["question"])
-            # self.question_object.append(question)
-
-            query = question["rag_questions"][i]["question"]
+        for q in question["rag_questions"]:
+            query = q["question"]
             query_tokens = bm25s.tokenize(query)
 
             results, scores = retriever.retrieve(query_tokens, k=self.k)
             # print(results)
             # print(scores)
-
+            retrieved_sources = []
             for index in results[0]:
-                print(f"{index}")
-                dict_json = {"text": self.chunks[index]["text"],
-                             "question_id": question["rag_questions"][i]["question_id"],
-                             "question": question["rag_questions"][i]["question"],
-                             "answer": "xx",
-                             "sources": [
+                start = self.chunks[index]["start_index"]
+                end = self.chunks[index]["end_index"]
+
+                # Sécurité : force la limite à 2000 caractères max
+                if end - start > 2000:
+                    end = start + 2000
+                retrieved_sources.append(
                     {
                         "file_path": self.chunks[index]["metadata"]["file_path"],
-                        "first_character_index": self.chunks[index]["start_index"],
-                        "last_character_index": self.chunks[index]["end_index"]
-                    }
-                ],
+                        "first_character_index": start,
+                        "last_character_index": end
+
+                    })
+                dict_json = {
+                    "question_id": q["question_id"],
+                    "question": q["question"],
+                    "retrieved_sources": retrieved_sources
+
                 }
                 list_dict_index.append(dict_json)
-                # print(f"Score: {score:.4f} | Document: {doc}")
-            output_path = Path("./data/processed/index.json")
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_path, "a", encoding="UTF-8") as f:
-                for i in list_dict_index:
-                    try:
-                        f.write(json.dumps(i) + "\n")
-                    except Exception:
-                        print("ca merde")
+        final_json = {
+            "search_results": list_dict_index,
+            "k": self.k
+        }
+        # print(f"Score: {score:.4f} | Document: {doc}")
+        output_path = Path(
+            "./data/output/search_results/UnansweredQuestions/index.json")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="UTF-8") as f:
+            json.dump(final_json, f, indent=2)

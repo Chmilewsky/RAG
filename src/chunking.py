@@ -39,8 +39,8 @@ class FileChunker:
             self.py_chonking(data)
         elif data.suffix == ".md":
             self.md_chonking(data)
-        elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
-            self.magika_chonking(data)
+        # elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
+        #     self.magika_chonking(data)
 
     def md_chonking(self, data) -> None:
         data_path = str(data)
