@@ -1,4 +1,4 @@
-from src.chunking import FileChunker
+from src.chunking import ChunkingPipeline
 from src.indexing import Indexing
 
 
@@ -10,7 +10,7 @@ class Run:
 
     def __call__(self) -> None:
         """Default action"""
-        chunker = FileChunker(
+        chunker = ChunkingPipeline(
             chunk_size=self.chunk_size,
             dataset_path=self.data_path)
         chunker()

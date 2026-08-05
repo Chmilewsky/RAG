@@ -3,25 +3,37 @@ from magika import Magika
 from pathlib import Path
 import json
 from typing import Any
+from tqdm import tqdm
 
 
 class ChunkingPipeline:
     """Orchestrates scanning, chunking, and writing."""
 
     def __init__(self, chunk_size: int = 2000,
-                 dataset_path: str = "./vllm-0.10.1",
-                 output_path: str = "chunk_data.jsonl") -> None:
+                 dataset_path: str = "./vllm-0.10.1") -> None:
+        self.output_path: Path = Path("./data/intern_output/chunk_data.jsonl")
+        self.dataset_path = Path(dataset_path)
+        if self.output_path.exists():
+            self.output_path.unlink()
         self.scanner = FileScanner(dataset_path)
         self.chunker = FileChunker(chunk_size=chunk_size)
-        self.writer = JsonWriter(output_path=output_path)
+        self.writer = JsonWriter(output_path=self.output_path)
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         self.run()
 
     def run(self):
-        for file in self.scanner.folder_or_file():
+        p = self.dataset_path
+        total_files = 0
+        if p.is_dir():
+            for item in p.rglob("*"):
+                if item.is_file():
+                    total_files += 1
+        for file in tqdm(self.scanner.folder_or_file(),
+                         desc="chunking files", total=total_files):
             chunks = self.chunker.file_type_filter(file)
-            self.writer.write(chunks)
+            if chunks:
+                self.writer.write(chunks)
 
 
 class FileScanner:
@@ -105,6 +117,7 @@ class FileChunker:
         chunk_list = []
         for chunk in chunked_file.chunks:
             chunk.metadata["file_path"] = str(data_path)
+            print(chunked_file)
             dict_chunk = chunk.to_dict()
             chunk_list.append(dict_chunk)
 
@@ -117,6 +130,7 @@ class JsonWriter:
         self.output_path = output_path
 
     def write(self, chunks):
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.output_path, "a", encoding="UTF-8") as f:
             f.write(json.dumps(chunks, ensure_ascii=False) + "\n")
 
