@@ -34,13 +34,16 @@ class ChunkingPipeline:
     def run(self) -> None:
         """Run the full chunking pipeline on all target files."""
         p = self.dataset_path
-        total_files = 0
+        total_files = 1
         if p.is_dir():
+            total_files = 0
             for item in p.rglob("*"):
                 if item.is_file():
                     total_files += 1
+
         for file in tqdm(self.scanner.folder_or_file(),
                          desc="chunking files", total=total_files):
+            try:
             chunks = self.chunker.file_type_filter(file)
             if chunks:
                 self.writer.write(chunks)
@@ -60,16 +63,17 @@ class FileScanner:
             Path: Next file path to process.
         """
         p = Path(self.data_path)
-        if not p.exists():
-            print(f"no file{p.absolute()}")
-        elif p.is_dir():
-            print("folder")
-            for item in p.rglob("*"):
-                if item.is_file():
-                    yield item
-        elif p.is_file():
-            print("file")
-            yield p
+        try:
+            if not p.exists():
+                print(f"no file or folder at {p.absolute()}")
+            elif p.is_dir():
+                for item in p.rglob("*"):
+                    if item.is_file():
+                        yield item
+            elif p.is_file():
+                yield p
+        except PermissionError as e:
+            raise e
 
 
 class FileChunker:
