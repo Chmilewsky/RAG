@@ -4,7 +4,7 @@ from src.indexing import Indexing
 
 class Run:
     def __init__(self, chunk_size: int = 2000,
-                 dataset_path: str = "./vllm-0.10.1") -> None:
+                 dataset_path: str = "data/raw/vllm-0.10.1") -> None:
         self.data_path = dataset_path
         self.chunk_size = chunk_size
 
