@@ -4,6 +4,8 @@ from pathlib import Path
 import bm25s
 import json
 
+# ajouter stemmer et stopwords
+
 
 class Indexing:
     def __init__(self, k=10) -> None:
@@ -32,52 +34,57 @@ class Indexing:
         corpus_tokens = bm25s.tokenize(self.corpus)
         retriever = bm25s.BM25()
         retriever.index(corpus_tokens)
-        try:
-            doc_question_path = (
-                "./data/dataset/UnansweredQuestions/dataset_docs_public.json")
-            code_question_path = (
-                "./data/dataset/UnansweredQuestions/dataset_code_public.json")
+        print(retriever.index)
+        with open("./data/processed/index.json", "w", encoding="UTF-8") as f:
+            json.dump(retriever.save("index"), f, indent=2)
 
-        except Exception as e:
-            print("\n--------\n")
-            print(e)
+            # class retriever:
+            #         try:
+            #             doc_question_path = (
+            #                 "./data/dataset/UnansweredQuestions/dataset_docs_public.json")
+            #             code_question_path = (
+            #                 "./data/dataset/UnansweredQuestions/dataset_code_public.json")
 
-        with open(code_question_path, "r", encoding="UTF-8") as f:
-            question = json.load(f)
-        for q in question["rag_questions"]:
-            query = q["question"]
-            query_tokens = bm25s.tokenize(query)
+            #         except Exception as e:
+            #             print("\n--------\n")
+            #             print(e)
 
-            results, scores = retriever.retrieve(query_tokens, k=self.k)
-            # print(results)
-            # print(scores)
-            retrieved_sources = []
-            for index in results[0]:
-                start = self.chunks[index]["start_index"]
-                end = self.chunks[index]["end_index"]
+            #         with open(code_question_path, "r", encoding="UTF-8") as f:
+            #             question = json.load(f)
+            #         for q in question["rag_questions"]:
+            #             query = q["question"]
+            #             query_tokens = bm25s.tokenize(query)
 
-                retrieved_sources.append(
-                    {
-                        "file_path": (self.chunks[index]
-                                      ["metadata"]["file_path"]),
-                        "first_character_index": start,
-                        "last_character_index": end
+            #             results, scores = retriever.retrieve(query_tokens, k=self.k)
+            #             # print(results)
+            #             # print(scores)
+            #             retrieved_sources = []
+            #             for index in results[0]:
+            #                 start = self.chunks[index]["start_index"]
+            #                 end = self.chunks[index]["end_index"]
 
-                    })
-                dict_json = {
-                    "question_id": q["question_id"],
-                    "question": q["question"],
-                    "retrieved_sources": retrieved_sources
+            #                 retrieved_sources.append(
+            #                     {
+            #                         "file_path": (self.chunks[index]
+            #                                       ["metadata"]["file_path"]),
+            #                         "first_character_index": start,
+            #                         "last_character_index": end
 
-                }
-                list_dict_index.append(dict_json)
-        final_json = {
-            "search_results": list_dict_index,
-            "k": self.k
-        }
-        # print(f"Score: {score:.4f} | Document: {doc}")
-        output_path = Path(
-            "./data/output/search_results/UnansweredQuestions/index.json")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w", encoding="UTF-8") as f:
-            json.dump(final_json, f, indent=2)
+            #                     })
+            #                 dict_json = {
+            #                     "question_id": q["question_id"],
+            #                     "question": q["question"],
+            #                     "retrieved_sources": retrieved_sources
+
+            #                 }
+            #                 list_dict_index.append(dict_json)
+            #         final_json = {
+            #             "search_results": list_dict_index,
+            #             "k": self.k
+            #         }
+            #         # print(f"Score: {score:.4f} | Document: {doc}")
+            #         output_path = Path(
+            #             "./data/output/search_results/UnansweredQuestions/index.json")
+            #         output_path.parent.mkdir(parents=True, exist_ok=True)
+            #         with open(output_path, "w", encoding="UTF-8") as f:
+            #             json.dump(final_json, f, indent=2)

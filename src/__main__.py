@@ -1,5 +1,5 @@
 import fire
-from src.run import Run
+from src.index import Run
 
 
 def main():
