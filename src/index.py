@@ -10,9 +10,9 @@ class Run:
 
     def __call__(self) -> None:
         """Default action"""
-        chunker = ChunkingPipeline(
-            chunk_size=self.chunk_size,
-            dataset_path=self.data_path)
-        chunker()
-        # indexing = Indexing()
-        # indexing()
+        # chunker = ChunkingPipeline(
+        #     chunk_size=self.chunk_size,
+        #     dataset_path=self.data_path)
+        # chunker()
+        indexing = Indexing(k=10)
+        indexing()

@@ -44,7 +44,9 @@ class ChunkingPipeline:
         for file in tqdm(self.scanner.folder_or_file(),
                          desc="chunking files", total=total_files):
             try:
-            chunks = self.chunker.file_type_filter(file)
+                chunks = self.chunker.file_type_filter(file)
+            except Exception as e:
+                raise e
             if chunks:
                 self.writer.write(chunks)
 
@@ -65,7 +67,7 @@ class FileScanner:
         p = Path(self.data_path)
         try:
             if not p.exists():
-                print(f"no file or folder at {p.absolute()}")
+                print(f"\nno file or folder at {p.absolute()}\n")
             elif p.is_dir():
                 for item in p.rglob("*"):
                     if item.is_file():
@@ -162,6 +164,7 @@ class FileChunker:
         Yields:
             Chunk: Original chunk or sub-chunks if fallback was required.
         """
+
         if chunk.token_count > self.chunk_size:
             new = self.tokenchunker(chunk.text)
             yield from new
@@ -181,10 +184,11 @@ class FileChunker:
         chunk_list: list[dict[str, Any]] = []
         for chunk in chunked_file.chunks:
             # print(chunk.token_count)
-            for sub_chunk in self.check_chunk_size(chunk, str(data_path)):
-                sub_chunk.metadata["file_path"] = str(data_path)
-                dict_chunk = sub_chunk.to_dict()
-                chunk_list.append(dict_chunk)
+            if chunk:
+                for sub_chunk in self.check_chunk_size(chunk, str(data_path)):
+                    sub_chunk.metadata["file_path"] = str(data_path)
+                    dict_chunk = sub_chunk.to_dict()
+                    chunk_list.append(dict_chunk)
         return chunk_list
 
 

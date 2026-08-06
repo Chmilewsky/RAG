@@ -20,7 +20,8 @@ class Indexing:
         list_dict_index = []
         try:
 
-            with open("chunk_data.jsonl", "r", encoding="utf-8") as f:
+            with open("./data/intern_output/chunk_data.jsonl",
+                      "r", encoding="utf-8") as f:
                 for line in f:
                     data = json.loads(line)
                     self.corpus.append(data["text"])
@@ -31,8 +32,15 @@ class Indexing:
         corpus_tokens = bm25s.tokenize(self.corpus)
         retriever = bm25s.BM25()
         retriever.index(corpus_tokens)
-        doc_question_path = "./datasets_public/public/UnansweredQuestions/dataset_docs_public.json"
-        code_question_path = "./datasets_public/public/UnansweredQuestions/dataset_code_public.json"
+        try:
+            doc_question_path = (
+                "./data/dataset/UnansweredQuestions/dataset_docs_public.json")
+            code_question_path = (
+                "./data/dataset/UnansweredQuestions/dataset_code_public.json")
+
+        except Exception as e:
+            print("\n--------\n")
+            print(e)
 
         with open(code_question_path, "r", encoding="UTF-8") as f:
             question = json.load(f)
@@ -50,7 +58,8 @@ class Indexing:
 
                 retrieved_sources.append(
                     {
-                        "file_path": self.chunks[index]["metadata"]["file_path"],
+                        "file_path": (self.chunks[index]
+                                      ["metadata"]["file_path"]),
                         "first_character_index": start,
                         "last_character_index": end
 
