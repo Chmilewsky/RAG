@@ -8,6 +8,9 @@ class IndexRetriever:
         self.dataset = Path(dataset_path)
         self.k = k
         self.save_path = Path(save_directory)
+        with open("data/intern_output/chunk_data.jsonl",
+                  "r", encoding="utf-8") as f:
+            self.chunks = [json.loads(line) for line in f]
 
         self.import_retriever = bm25s.BM25.load("./data/processed")
 
@@ -15,6 +18,7 @@ class IndexRetriever:
         self.retriever()
 
     def retriever(self):
+        list_dict_index = []
 
         with open(self.dataset, "r", encoding="UTF-8") as f:
             question = json.load(f)
