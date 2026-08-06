@@ -1,10 +1,13 @@
 import fire
-from src.index import Run
+from src.index import ChunkIndex, SearchDataset
 
 
 def main():
     # test = FileChunker()
-    fire.Fire(Run)
+    fire.Fire({
+        "index": ChunkIndex,
+        "search_dataset": SearchDataset
+    })
 
 
 if __name__ == "__main__":
