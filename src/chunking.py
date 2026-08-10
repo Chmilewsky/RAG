@@ -125,7 +125,7 @@ class FileChunker:
                         tokenizer="character", rules=custom_rules).run())
 
         merge_chunk = self.chunk_merger(
-            md_pipeline, self.chunk_size // 2, self.chunk_size)
+            md_pipeline, 1750, self.chunk_size)
 
         chunks = self.metadata_add(merge_chunk, data)
         return chunks
@@ -198,56 +198,91 @@ class FileChunker:
                     chunk_list.append(dict_chunk)
         return chunk_list
 
-    def chunk_merger(
-            self, chunked_file: list[Chunk], min_size: int, max_size: int):
-        self.min = min_size
-        self.max = max_size
+    def chunk_merger(self, chunked_file, min_size: int, max_size: int):
         print(len(chunked_file.chunks))
-        new_chunk_list: list[Chunk] = []
-        id = ""
-        start_index = 0
+        new_chunk_list = []
+
+        # Initialisation HORS de la boucle pour permettre l'accumulation
+        start_index = 99999999999999999
         end_index = 0
         token_count = 0
-        context = ""
-        embedding = ""
-        filename = ""
-        file_path = ""
         new_str = ""
+        current_metadata = {}
 
         for chunk in chunked_file.chunks:
-            if chunk.token_count > min_size:
+            if chunk.token_count >= min_size:
+                # 1. Si on a des petits chunks en attente de fusion, on les
+                # sauvegarde d'abord
+                if token_count > 0:
+                    new_chunk = Chunk(
+                        text=new_str,
+                        start_index=start_index,
+                        end_index=end_index,
+                        token_count=token_count,
+                        metadata=current_metadata.copy()
+                    )
+                    new_chunk_list.append(new_chunk)
+
+                    # On remet à zéro pour les prochains petits chunks
+                    start_index = 99999999999999999
+                    end_index = 0
+                    token_count = 0
+                    new_str = ""
+                    current_metadata = {}
+
+                # 2. On ajoute le gros chunk tel quel
                 new_chunk_list.append(chunk)
+
             elif chunk.token_count < min_size:
-                start_index = 99999999999999999
-                start_index = (chunk.index_start if
-                               chunk.index_start < start_index else
-                               start_index)
-                if token_count + chunk.token_count < max_size:
-                    new_str += f"\n\n {chunk.text}"
-                    token_count += token_count + 2
+                # 1. Si l'ajout de CE petit chunk dépasse le max_size, on
+                # sauvegarde ce qu'on a déjà
+                if token_count > 0 and (
+                        token_count + chunk.token_count) > max_size:
+                    new_chunk = Chunk(
+                        text=new_str,
+                        start_index=start_index,
+                        end_index=end_index,
+                        token_count=token_count,
+                        metadata=current_metadata.copy()
+                    )
+                    new_chunk_list.append(new_chunk)
+
+                    # On remet à zéro
+                    start_index = 99999999999999999
+                    end_index = 0
+                    token_count = 0
+                    new_str = ""
+                    current_metadata = {}
+
+                # 2. On accumule le petit chunk actuel
+                start_index = chunk.start_index if chunk.start_index < start_index else start_index
                 end_index = chunk.end_index
 
-                new_chunk: Chunk = Chunk(
-                    id str=lambda: generate_id("chnk"),
-                    text: str="new_str",
-                    start_index: int=start_index,
-                    end_index: int=end_index=,
-                    token_count: int=token_count,
-                    context: str | None=None,
-                    embedding: list[float] | ndarray[_AnyShape,
-                                                     dtype[Any]] | None=None,
-                    metadata: dict[str, Any]=dict
-                )
-                id = ""
-                start_index = 0
-                end_index = 0
-                token_count = 0
-                context = ""
-                embedding = ""
-                filename = ""
-                file_path = ""
-                new_str = ""
+                # Gestion du séparateur de texte
+                if new_str == "":
+                    new_str = chunk.text
+                else:
+                    new_str += f"\n\n {chunk.text}"
 
+                token_count += chunk.token_count
+
+                if hasattr(chunk, 'metadata') and chunk.metadata:
+                    current_metadata.update(chunk.metadata)
+
+        # À la fin de la boucle, il faut sauvegarder les derniers petits chunks
+        # s'il en reste
+        if token_count > 0:
+            new_chunk = Chunk(
+                text=new_str,
+                start_index=start_index,
+                end_index=end_index,
+                token_count=token_count,
+                metadata=current_metadata.copy()
+            )
+            new_chunk_list.append(new_chunk)
+
+        # On remplace l'ancienne liste par la nouvelle et on retourne l'objet
+        chunked_file.chunks = new_chunk_list
         return chunked_file
 
 

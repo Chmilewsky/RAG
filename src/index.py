@@ -22,7 +22,7 @@ class ChunkIndex:
 class SearchDataset:
 
     def __init__(
-        self, dataset_path="data/dataset/UnansweredQuestions/"
+        self, dataset_path="data/datasets/UnansweredQuestions/"
         "dataset_docs_public.json",
             k=10, save_directory="data/output/"
             "search_results/UnansweredQuestions") -> None:
