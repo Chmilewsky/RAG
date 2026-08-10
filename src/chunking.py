@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from chonkie import Pipeline, TokenChunker, Chunk
+from chonkie import Pipeline, TokenChunker, Chunk, RecursiveRules
 from magika import Magika
 from pathlib import Path
 import json
@@ -90,6 +90,7 @@ class FileChunker:
             chunk_size=chunk_size,
             chunk_overlap=chunk_size // 10
         )
+        self.count = 0
 
     def file_type_filter(self, data) -> list[dict[str, Any]] | None:
         """Filter file by extension and route to the corresponding chunker.
@@ -100,27 +101,33 @@ class FileChunker:
         Returns:
             List of chunk dictionaries, or None if file type is unsupported.
         """
-        if data.suffix == ".py":
-            chunks = self.py_chonking(data)
-            return chunks
-        elif data.suffix == ".md":
+        # if data.suffix == ".py":
+        #     chunks = self.py_chonking(data)
+        #     return chunks
+        if data.suffix == ".md":
             chunks = self.md_chonking(data)
             return chunks
-        elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
-            chunks = self.magika_chonking(data)
-            return chunks
+        # elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
+        #     chunks = self.magika_chonking(data)
+        #     return chunks
 
     def md_chonking(self, data) -> list[dict[str, Any]]:
         """Chunk a Markdown file using recursive chunking."""
         data_path = str(data)
-        # print(data_path)
+        with open("src/custom_markdown.json", "r", encoding="utf-8") as f:
+            rules_dict = json.load(f)
+        custom_rules = RecursiveRules.from_dict(rules_dict)
         md_pipeline = (
             Pipeline().fetch_from(
                 "file", path=data_path)
             .process_with("markdown")
             .chunk_with("recursive", chunk_size=self.chunk_size,
-                        tokenizer="character", recipe="markdown").run())
-        chunks = self.metadata_add(md_pipeline, data)
+                        tokenizer="character", rules=custom_rules).run())
+
+        merge_chunk = self.chunk_merger(
+            md_pipeline, self.chunk_size // 2, self.chunk_size)
+
+        chunks = self.metadata_add(merge_chunk, data)
         return chunks
 
     def py_chonking(self, data) -> list[dict[str, Any]]:
@@ -190,6 +197,58 @@ class FileChunker:
                     dict_chunk = sub_chunk.to_dict()
                     chunk_list.append(dict_chunk)
         return chunk_list
+
+    def chunk_merger(
+            self, chunked_file: list[Chunk], min_size: int, max_size: int):
+        self.min = min_size
+        self.max = max_size
+        print(len(chunked_file.chunks))
+        new_chunk_list: list[Chunk] = []
+        id = ""
+        start_index = 0
+        end_index = 0
+        token_count = 0
+        context = ""
+        embedding = ""
+        filename = ""
+        file_path = ""
+        new_str = ""
+
+        for chunk in chunked_file.chunks:
+            if chunk.token_count > min_size:
+                new_chunk_list.append(chunk)
+            elif chunk.token_count < min_size:
+                start_index = 99999999999999999
+                start_index = (chunk.index_start if
+                               chunk.index_start < start_index else
+                               start_index)
+                if token_count + chunk.token_count < max_size:
+                    new_str += f"\n\n {chunk.text}"
+                    token_count += token_count + 2
+                end_index = chunk.end_index
+
+                new_chunk: Chunk = Chunk(
+                    id str=lambda: generate_id("chnk"),
+                    text: str="new_str",
+                    start_index: int=start_index,
+                    end_index: int=end_index=,
+                    token_count: int=token_count,
+                    context: str | None=None,
+                    embedding: list[float] | ndarray[_AnyShape,
+                                                     dtype[Any]] | None=None,
+                    metadata: dict[str, Any]=dict
+                )
+                id = ""
+                start_index = 0
+                end_index = 0
+                token_count = 0
+                context = ""
+                embedding = ""
+                filename = ""
+                file_path = ""
+                new_str = ""
+
+        return chunked_file
 
 
 class JsonWriter:

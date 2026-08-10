@@ -1,6 +1,7 @@
 import bm25s
 from pathlib import Path
 import json
+import Stemmer
 
 
 class IndexRetriever:
@@ -19,12 +20,13 @@ class IndexRetriever:
 
     def retriever(self):
         list_dict_index = []
+        stemmer = Stemmer.Stemmer("english")
 
         with open(self.dataset, "r", encoding="UTF-8") as f:
             question = json.load(f)
         for q in question["rag_questions"]:
             query = q["question"]
-            query_tokens = bm25s.tokenize(query)
+            query_tokens = bm25s.tokenize(query, stemmer=stemmer)
 
             results, scores = self.import_retriever.retrieve(
                 query_tokens, k=self.k)

@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "bm25s>=0.3.10",
+    "bm25s[core]>=0.3.10",
     "chonkie[code,hub]>=1.7.0",
     "fire>=0.7.1",
     "magika>=1.0.3",
