@@ -28,8 +28,6 @@ class IndexRetriever:
 
             results, scores = self.import_retriever.retrieve(
                 query_tokens, k=self.k)
-        #     # print(results)
-        #     # print(scores)
             retrieved_sources = []
             for index in results[0]:
                 start = self.chunks[index]["start_index"]
@@ -54,9 +52,12 @@ class IndexRetriever:
             "search_results": list_dict_index,
             "k": self.k
         }
-        # print(f"Score: {score:.4f} | Document: {doc}")
-        output_path = Path(
-            "./data/output/search_results/UnansweredQuestions/index.json")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w", encoding="UTF-8") as f:
-            json.dump(final_json, f, indent=2)
+
+        savefile = self.save_path / self.dataset.name
+        savefile.parent.mkdir(parents=True, exist_ok=True)
+        print(savefile)
+        try:
+            with open(savefile, "w", encoding="UTF-8") as f:
+                json.dump(final_json, f, indent=2)
+        except Exception as e:
+            print(e)
