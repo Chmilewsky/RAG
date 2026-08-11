@@ -1,6 +1,6 @@
 from typing import Any
 from pathlib import Path
-import tqdm
+from tqdm import tqdm
 import Stemmer
 
 import bm25s
@@ -23,7 +23,8 @@ class Indexing:
         try:
             with open("./data/intern_output/chunk_data.jsonl",
                       "r", encoding="utf-8") as f:
-                for line in f:
+                lines = f.readlines()
+                for line in tqdm(lines, desc="tokenizing"):
                     data = json.loads(line)
                     corpus_str = (f"{data["text"]}"
                                   f"{data['metadata']['filename']}")

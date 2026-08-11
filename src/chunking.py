@@ -108,6 +108,9 @@ class FileChunker:
         elif data.suffix == ".md":
             chunks = self.md_chonking(data)
             return chunks
+        elif data.suffix == ".txt":
+            chunks = self.brut_chunk(data)
+            return chunks
         # elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
         #     chunks = self.magika_chonking(data)
         #     return chunks
