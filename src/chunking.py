@@ -95,21 +95,42 @@ class FileChunker:
     def file_type_filter(self, data) -> list[dict[str, Any]] | None:
         """Filter file by extension and route to the corresponding chunker.
 
-        Args:
-            data: Path to the target file.
+            Args:
+                data: Path to the target file.
 
-        Returns:
-            List of chunk dictionaries, or None if file type is unsupported.
-        """
-        # if data.suffix == ".py":
-        #     chunks = self.py_chonking(data)
-        #     return chunks
-        if data.suffix == ".md":
+            Returns:
+                List of chunk dictionaries,
+                or None if file type is unsupported.
+            """
+        if data.suffix == ".py":
+            chunks = self.brut_chunk(data)
+            return chunks
+        elif data.suffix == ".md":
             chunks = self.md_chonking(data)
             return chunks
         # elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
         #     chunks = self.magika_chonking(data)
         #     return chunks
+
+    def brut_chunk(self, data) -> list[dict[str, Any]]:
+        """Chunk a Python file strictly by token count with overlap (No AST)."""
+        data_path = str(data)
+
+        py_pipeline = (
+            Pipeline()
+            .fetch_from("file", path=data_path)
+            .process_with("text")
+            .chunk_with(
+                "token",
+                chunk_size=self.chunk_size,
+                chunk_overlap=225,
+                tokenizer="character"
+            )
+            .run()
+        )
+
+        chunks = self.metadata_add(py_pipeline, data)
+        return chunks
 
     def md_chonking(self, data) -> list[dict[str, Any]]:
         """Chunk a Markdown file using recursive chunking."""
@@ -120,14 +141,12 @@ class FileChunker:
         md_pipeline = (
             Pipeline().fetch_from(
                 "file", path=data_path)
-            .process_with("markdown")
+            .process_with("text")
             .chunk_with("recursive", chunk_size=self.chunk_size,
+                        min_characters_per_chunk=1200,
                         tokenizer="character", rules=custom_rules).run())
 
-        merge_chunk = self.chunk_merger(
-            md_pipeline, 1750, self.chunk_size)
-
-        chunks = self.metadata_add(merge_chunk, data)
+        chunks = self.metadata_add(md_pipeline, data)
         return chunks
 
     def py_chonking(self, data) -> list[dict[str, Any]]:
@@ -197,93 +216,6 @@ class FileChunker:
                     dict_chunk = sub_chunk.to_dict()
                     chunk_list.append(dict_chunk)
         return chunk_list
-
-    def chunk_merger(self, chunked_file, min_size: int, max_size: int):
-        print(len(chunked_file.chunks))
-        new_chunk_list = []
-
-        # Initialisation HORS de la boucle pour permettre l'accumulation
-        start_index = 99999999999999999
-        end_index = 0
-        token_count = 0
-        new_str = ""
-        current_metadata = {}
-
-        for chunk in chunked_file.chunks:
-            if chunk.token_count >= min_size:
-                # 1. Si on a des petits chunks en attente de fusion, on les
-                # sauvegarde d'abord
-                if token_count > 0:
-                    new_chunk = Chunk(
-                        text=new_str,
-                        start_index=start_index,
-                        end_index=end_index,
-                        token_count=token_count,
-                        metadata=current_metadata.copy()
-                    )
-                    new_chunk_list.append(new_chunk)
-
-                    # On remet à zéro pour les prochains petits chunks
-                    start_index = 99999999999999999
-                    end_index = 0
-                    token_count = 0
-                    new_str = ""
-                    current_metadata = {}
-
-                # 2. On ajoute le gros chunk tel quel
-                new_chunk_list.append(chunk)
-
-            elif chunk.token_count < min_size:
-                # 1. Si l'ajout de CE petit chunk dépasse le max_size, on
-                # sauvegarde ce qu'on a déjà
-                if token_count > 0 and (
-                        token_count + chunk.token_count) > max_size:
-                    new_chunk = Chunk(
-                        text=new_str,
-                        start_index=start_index,
-                        end_index=end_index,
-                        token_count=token_count,
-                        metadata=current_metadata.copy()
-                    )
-                    new_chunk_list.append(new_chunk)
-
-                    # On remet à zéro
-                    start_index = 99999999999999999
-                    end_index = 0
-                    token_count = 0
-                    new_str = ""
-                    current_metadata = {}
-
-                # 2. On accumule le petit chunk actuel
-                start_index = chunk.start_index if chunk.start_index < start_index else start_index
-                end_index = chunk.end_index
-
-                # Gestion du séparateur de texte
-                if new_str == "":
-                    new_str = chunk.text
-                else:
-                    new_str += f"\n\n {chunk.text}"
-
-                token_count += chunk.token_count
-
-                if hasattr(chunk, 'metadata') and chunk.metadata:
-                    current_metadata.update(chunk.metadata)
-
-        # À la fin de la boucle, il faut sauvegarder les derniers petits chunks
-        # s'il en reste
-        if token_count > 0:
-            new_chunk = Chunk(
-                text=new_str,
-                start_index=start_index,
-                end_index=end_index,
-                token_count=token_count,
-                metadata=current_metadata.copy()
-            )
-            new_chunk_list.append(new_chunk)
-
-        # On remplace l'ancienne liste par la nouvelle et on retourne l'objet
-        chunked_file.chunks = new_chunk_list
-        return chunked_file
 
 
 class JsonWriter:

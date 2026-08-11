@@ -23,7 +23,7 @@ class SearchDataset:
 
     def __init__(
         self, dataset_path="data/datasets/UnansweredQuestions/"
-        "dataset_docs_public.json",
+        "dataset_code_public.json",
             k=10, save_directory="data/output/"
             "search_results/UnansweredQuestions") -> None:
         self.dataset = dataset_path
