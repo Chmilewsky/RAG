@@ -43,13 +43,13 @@ class IndexRetriever:
                         "last_character_index": end
 
                     })
-                dict_json = {
-                    "question_id": q["question_id"],
-                    "question": q["question"],
-                    "retrieved_sources": retrieved_sources
+            dict_json = {
+                "question_id": q["question_id"],
+                "question": q["question"],
+                "retrieved_sources": retrieved_sources
 
-                }
-                list_dict_index.append(dict_json)
+            }
+            list_dict_index.append(dict_json)
         final_json = {
             "search_results": list_dict_index,
             "k": self.k
