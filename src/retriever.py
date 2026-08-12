@@ -40,7 +40,8 @@ class IndexRetriever:
                         "file_path": (self.chunks[index]
                                       ["metadata"]["file_path"]),
                         "first_character_index": start,
-                        "last_character_index": end
+                        "last_character_index": end,
+                        "chunk_txt": self.chunks[index]["text"]
 
                     })
             dict_json = {

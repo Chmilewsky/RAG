@@ -5,3 +5,5 @@ __pycache__/
 vllm-0.10.1
 *.json
 !src/custom_markdown.json
+*.npy
+*.jsonl
