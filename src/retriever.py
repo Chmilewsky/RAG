@@ -1,7 +1,8 @@
 import bm25s
 from pydantic import ValidationError
 from pathlib import Path
-from src.models import MinimalSearchResults, MinimalSource, RagDataset, StudentSearchResults
+from src.models import (MinimalSearchResults, MinimalSource,
+                        RagDataset, StudentSearchResults)
 import json
 import Stemmer
 
