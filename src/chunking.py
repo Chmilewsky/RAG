@@ -111,9 +111,9 @@ class FileChunker:
         elif data.suffix == ".txt":
             chunks = self.brut_chunk(data)
             return chunks
-        # elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
-        #     chunks = self.magika_chonking(data)
-        #     return chunks
+        elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
+            chunks = self.magika_chonking(data)
+            return chunks
 
     def brut_chunk(self, data) -> list[dict[str, Any]]:
         """Chunk a Python file strictly by token count with overlap (No AST)."""

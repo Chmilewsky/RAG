@@ -1,12 +1,12 @@
 from ollama import chat
 from pathlib import Path
-import json
 from tqdm import tqdm
 from pydantic import ValidationError
 from src.models import (MinimalAnswer,
                         MinimalSource,
                         StudentSearchResults,
-                        StudentSearchResultsAndAnswer
+                        StudentSearchResultsAndAnswer,
+                        RagDataset
                         )
 
 # response = chat(
@@ -31,16 +31,18 @@ class MessagePrep:
             self, question_id: str) -> tuple[str, list[MinimalSource]]:
         message = ""
         sources: list[MinimalSource] = []
+        # with open(self.chunk, "r", encoding="UTF-8") as f:
+        #     question_data = json.load(f)
         with open(self.chunk, "r", encoding="UTF-8") as f:
-            question_data = json.load(f)
-        for q in question_data["search_results"]:
-            if q["question_id"] == question_id:
-                sources = q["retrieved_sources"]
-                message += f"question: {q['question']} \n"
-                for r in q["retrieved_sources"]:
-                    message += f"context {r['chunk_txt']} \n"
+            question_data = StudentSearchResults.model_validate_json(f.read())
+        for q in question_data.search_results:
+            if q.question_id == question_id:
+                sources = q.retrieved_sources
+                message += f"question: {q.question} \n"
+                for r in q.retrieved_sources:
+                    message += f"context {r.chunk_txt} \n"
                 break
-        message = message[:800]
+        message = message[:4000]
         return message, sources
 
 
@@ -51,19 +53,14 @@ class Answer:
 
     def open_file(self):
         te = MessagePrep()
-
         with open(self.question, "r", encoding="UTF-8") as f:
-            question_data = json.load(f)
+            question_data = RagDataset.model_validate_json(f.read())
         llm_answer_list = []
-
         output = []
 
-        # msg = te.question_add(question_data["rag_questions"][0]["question_id"])
-        # print(msg)
-
-        for q in question_data["rag_questions"]:
+        for q in question_data.rag_questions:
             results = []
-            msg, source = te.question_add(q["question_id"])
+            msg, source = te.question_add(q.question_id)
             # print(msg)
             messages = [
                 {
@@ -77,10 +74,10 @@ class Answer:
             ]
             response = chat(model=self.model, messages=messages)
             llm_answer = MinimalAnswer(
-                question_id=q["question_id"],
-                question=q["question"],
+                question_id=q.question_id,
+                question=q.question,
                 retrieved_sources=source,
-                answer=response.message.content)
+                answer=response.message.content or "")
 
             print(f"---{response.message.content}---")
             results.append(response.message.content)

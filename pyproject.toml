@@ -8,6 +8,7 @@ dependencies = [
     "bm25s[core]>=0.3.10",
     "chonkie[code,hub]>=1.7.0",
     "fire>=0.7.1",
+    "langchain-text-splitters>=1.1.2",
     "magika>=1.0.3",
     "ollama>=0.6.2",
     "torch>=2.13.0",
