@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+import uuid
 
 
 class MinimalSource(BaseModel):
@@ -6,6 +7,7 @@ class MinimalSource(BaseModel):
     file_path: str
     first_character_index: int
     last_character_index: int
+    chunk_txt: str | None = None
 
 
 class UnansweredQuestion(BaseModel):

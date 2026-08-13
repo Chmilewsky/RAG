@@ -1,5 +1,7 @@
 import bm25s
+from pydantic import ValidationError
 from pathlib import Path
+from src.models import MinimalSearchResults, MinimalSource, RagDataset, StudentSearchResults
 import json
 import Stemmer
 
@@ -18,14 +20,25 @@ class IndexRetriever:
     def __call__(self) -> None:
         self.retriever()
 
+    def importcheck(self) -> bool:
+        try:
+            with open(self.dataset, "r", encoding="UTF-8") as f:
+                check = RagDataset.model_validate_json(f.read())
+        except ValidationError as e:
+            print(f"Error found : {e}")
+
     def retriever(self):
-        list_dict_index = []
+        search_results = []
         stemmer = Stemmer.Stemmer("english")
 
-        with open(self.dataset, "r", encoding="UTF-8") as f:
-            question = json.load(f)
-        for q in question["rag_questions"]:
-            query = q["question"]
+        try:
+            with open(self.dataset, "r", encoding="UTF-8") as f:
+                question = RagDataset.model_validate_json(f.read())
+        except ValidationError as e:
+            print(f"Error found : {e}")
+
+        for q in question.rag_questions:
+            query = q.question
             query_tokens = bm25s.tokenize(query, stemmer=stemmer)
 
             results, scores = self.import_retriever.retrieve(
@@ -36,31 +49,33 @@ class IndexRetriever:
                 end = self.chunks[index]["end_index"]
 
                 retrieved_sources.append(
-                    {
-                        "file_path": (self.chunks[index]
-                                      ["metadata"]["file_path"]),
-                        "first_character_index": start,
-                        "last_character_index": end,
-                        "chunk_txt": self.chunks[index]["text"]
+                    MinimalSource(
 
-                    })
-            dict_json = {
-                "question_id": q["question_id"],
-                "question": q["question"],
-                "retrieved_sources": retrieved_sources
+                        file_path=(self.chunks[index]
+                                   ["metadata"]["file_path"]),
+                        first_character_index=start,
+                        last_character_index=end,
+                        chunk_txt=self.chunks[index]["text"]
 
-            }
-            list_dict_index.append(dict_json)
-        final_json = {
-            "search_results": list_dict_index,
-            "k": self.k
-        }
+                    ))
+
+            search_results.append(
+                MinimalSearchResults(
+                    question_id=q.question_id,
+                    question=q.question,
+                    retrieved_sources=retrieved_sources
+                ))
+
+        final_output = StudentSearchResults(
+            search_results=search_results, k=self.k)
 
         savefile = self.save_path / self.dataset.name
         savefile.parent.mkdir(parents=True, exist_ok=True)
         print(savefile)
         try:
-            with open(savefile, "w", encoding="UTF-8") as f:
-                json.dump(final_json, f, indent=2)
+            savefile.write_text(
+                final_output.model_dump_json(
+                    indent=2), encoding="UTF-8")
+
         except Exception as e:
             print(e)
