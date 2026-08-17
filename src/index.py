@@ -1,6 +1,8 @@
+from typing import Any
+
 from src.chunking import ChunkingPipeline
 from src.indexing import Indexing
-from src.retriever import IndexRetriever
+from src.retriever import IndexRetriever, SoloQuery
 
 
 class ChunkIndex:
@@ -32,6 +34,20 @@ class SearchDataset:
 
     def __call__(self) -> None:
         """default action"""
-        indexretreive = IndexRetriever(dataset_path=self.dataset, k=self.k,
-                                       save_directory=self.save)
-        indexretreive()
+        index_retreive = IndexRetriever(dataset_path=self.dataset, k=self.k,
+                                        save_directory=self.save)
+        index_retreive()
+
+
+class Search:
+    def __init__(
+        self, question="how to configure the OpenAI server?",
+        k=5, save_directory="data/output/"
+            "search_results/UnansweredQuestions") -> None:
+        self.question = question
+        self.k = k
+        self.save = save_directory
+
+    def __call__(self) -> None:
+        solo_retrieve = SoloQuery(question=self.question, k=self.k)
+        solo_retrieve()

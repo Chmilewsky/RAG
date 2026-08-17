@@ -42,6 +42,9 @@ index:
 	uv run python -m src index --max_chunk_size 2000
 
 search:
+	uv run python -m src search
+
+search_dataset:
 	uv run python -m src search_dataset
 
 evalcode:
@@ -50,4 +53,4 @@ evaldocs:
 	./moulinette evaluate_student_search_results data/output/search_results/UnansweredQuestions/dataset_docs_public.json data/datasets/AnsweredQuestions/dataset_docs_public.json --k 10 --max_context_length 2000
 
 
-.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search
+.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset

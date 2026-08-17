@@ -17,6 +17,7 @@ class Indexing:
 
     def build_index(self) -> None:
         stemmer = Stemmer.Stemmer("english")
+        count_chunk = 0
         try:
             with open("./data/intern_output/chunk_data.jsonl",
                       "r", encoding="utf-8") as f:
@@ -26,6 +27,7 @@ class Indexing:
                     corpus_str = (f"{data["text"]}"
                                   f"{data['metadata']['filename']}")
                     self.corpus.append(corpus_str)
+                    count_chunk += 1
 
         except Exception as e:
             print(f"no chunk_data.jsonl --\n{e}\n----")
@@ -36,3 +38,5 @@ class Indexing:
         retriever = bm25s.BM25()
         retriever.index(corpus_tokens)
         retriever.save(str("data/processed"))
+        print(
+            f"Ingestion complete! Indexed {count_chunk} under data/processed")

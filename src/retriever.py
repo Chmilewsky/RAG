@@ -80,3 +80,28 @@ class IndexRetriever:
 
         except Exception as e:
             print(e)
+
+
+class SoloQuery:
+
+    def __init__(self, question, k) -> None:
+        self.question = question
+        self.k = k
+        with open("data/intern_output/chunk_data.jsonl",
+                  "r", encoding="utf-8") as f:
+            self.chunks = [json.loads(line) for line in f]
+        self.import_retriever = bm25s.BM25.load("./data/processed")
+
+    def __call__(self) -> None:
+        self.retriever()
+
+    def retriever(self):
+        stemmer = Stemmer.Stemmer("english")
+        query_tokens = bm25s.tokenize(self.question, stemmer=stemmer)
+        results, scores = self.import_retriever.retrieve(
+            query_tokens, k=self.k)
+        for index in results[0]:
+            start = self.chunks[index]["start_index"]
+            end = self.chunks[index]["end_index"]
+            path = self.chunks[index]["metadata"]["file_path"]
+            print(f"{path} [{start}:{end}]")

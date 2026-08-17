@@ -126,12 +126,11 @@ class FileChunker:
             .chunk_with(
                 "token",
                 chunk_size=self.chunk_size,
-                chunk_overlap=self.chunk_size // 2,
+                chunk_overlap=self.chunk_size // 20,
                 tokenizer="character"
             )
             .run()
         )
-
         chunks = self.metadata_add(py_pipeline, data)
         return chunks
 
@@ -220,9 +219,6 @@ class FileChunker:
                     sub_chunk.metadata["filename"] = data_path.name
                     dict_chunk = sub_chunk.to_dict()
                     chunk_list.append(dict_chunk)
-            # chunk.metadata["file_path"] = str(data_path)
-            # dict_chunk = chunk.to_dict()
-            # chunk_list.append(dict_chunk)
         return chunk_list
 
 
