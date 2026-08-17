@@ -44,3 +44,16 @@ class StudentSearchResults(BaseModel):
 class StudentSearchResultsAndAnswer(BaseModel):
     search_results: list[MinimalAnswer]
     k: int
+
+# Use only with langchain
+# class ChunkMetadata(BaseModel):
+#     filename: str
+#     file_path: str
+
+
+# class ChunkModel(BaseModel):
+#     text: str
+#     start_index: int
+#     end_index: int
+#     token_count: int
+#     metadata: ChunkMetadata

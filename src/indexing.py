@@ -1,5 +1,4 @@
 from typing import Any
-from pathlib import Path
 from tqdm import tqdm
 import Stemmer
 
@@ -17,9 +16,7 @@ class Indexing:
         self.build_index()
 
     def build_index(self) -> None:
-        list_dict_index = []
         stemmer = Stemmer.Stemmer("english")
-
         try:
             with open("./data/intern_output/chunk_data.jsonl",
                       "r", encoding="utf-8") as f:

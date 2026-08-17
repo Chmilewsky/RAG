@@ -1,11 +1,10 @@
 from pathlib import Path
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
 from typing import Any
-import tqdm
-
-
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=0)
-texts = text_splitter.split_text(document)
+from tqdm import tqdm
+from collections.abc import Iterator
+import json
+from src.models import ChunkMetadata, ChunkModel
 
 
 class ChunkingPipeline:
@@ -19,7 +18,8 @@ class ChunkingPipeline:
             chunk_size: Target maximum size per chunk.
             dataset_path: Path to the dataset folder or file.
         """
-        self.output_path: Path = Path("./data/intern_output/chunk_data.jsonl")
+        self.output_path: Path = Path(
+            "./data/intern_output/chunk_data_lang.jsonl")
         self.dataset_path = Path(dataset_path)
         if self.output_path.exists():
             self.output_path.unlink()
@@ -85,8 +85,11 @@ class FileChunker:
     def __init__(self, chunk_size: int = 2000) -> None:
         """Initialize chunker with maximum size and fallback options."""
         self.chunk_size = chunk_size
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size, chunk_overlap=chunk_size // 10)
+        self.text_splitter = RecursiveCharacterTextSplitter.from_language(
+            language=Language.PYTHON,
+            chunk_size=chunk_size, chunk_overlap=chunk_size // 10,
+            add_start_index=True
+        )
 
     def file_type_filter(self, data) -> list[dict[str, Any]] | None:
         """Filter file by extension and route to the corresponding chunker.
@@ -99,11 +102,57 @@ class FileChunker:
                 or None if file type is unsupported.
             """
         if data.suffix == ".py":
-            chunks = self.brut_chunk(data)
+            chunks = self.langchunk(data)
             return chunks
-        elif data.suffix == ".md":
-            chunks = self.md_chonking(data)
-            return chunks
-        elif data.suffix == ".txt":
-            chunks = self.brut_chunk(data)
-            return chunks
+
+    def langchunk(self, data):
+        with open(data, "r", encoding="UTF-8") as f:
+            data_txt = f.read()
+        chunks = (self.text_splitter.create_documents
+                  (texts=[data_txt],
+                   metadatas=[{"file_path": data}])
+                  )
+        formated_chunk = []
+        for chunk in chunks:
+            starting_index = chunk.metadata["start_index"]
+            ending_index = (
+                chunk.metadata["start_index"]
+                + len(chunk.page_content))
+            acces = Path(data)
+            chunk_meta = ChunkMetadata(
+                filename=acces.name,
+                file_path=str(acces)
+            )
+            chunk_final = ChunkModel(
+                text=chunk.page_content,
+                start_index=starting_index,
+                end_index=ending_index,
+                token_count=len(chunk.page_content),
+                metadata=chunk_meta
+            )
+            formated_chunk.append(chunk_final)
+        return formated_chunk
+
+
+class JsonWriter:
+    """Appends processed chunk dictionaries to a JSONL output file."""
+
+    def __init__(self, output_path) -> None:
+        """Initialize writer with target output path."""
+        self.output_path = output_path
+
+    def write(self, chunks):
+        """Append a list of chunk dictionaries to the JSONL output file."""
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.output_path, "a", encoding="UTF-8") as f:
+            for chunk in chunks:
+                f.write(chunk.model_dump_json() + "\n")
+
+
+def main():
+    test = ChunkingPipeline(2000, "./data/raw/vllm-0.10.1")
+    test()
+
+
+if __name__ == "__main__":
+    main()

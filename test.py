@@ -2,7 +2,7 @@ import json
 
 
 def check_chunk_lengths(
-        jsonl_path: str = "chunk_data.jsonl", max_limit: int = 500):
+        jsonl_path: str = "data/intern_output/chunk_data.jsonl", max_limit: int = 2000):
     overflow_chunks = []
 
     with open(jsonl_path, "r", encoding="utf-8") as f:
@@ -39,7 +39,9 @@ def check_chunk_lengths(
 
 
 # Exécution
-trop_longs = check_chunk_lengths("chunk_data.jsonl", max_limit=500)
+trop_longs = check_chunk_lengths(
+    "data/intern_output/chunk_data.jsonl",
+    max_limit=2000)
 
 print(f"Total de chunks hors limite (> 2000) : {len(trop_longs)}")
 if trop_longs:
