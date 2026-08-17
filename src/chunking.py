@@ -18,8 +18,7 @@ class ChunkingPipeline:
             chunk_size: Target maximum size per chunk.
             dataset_path: Path to the dataset folder or file.
         """
-        self.output_path: Path = Path(
-            "./data/intern_output/chunk_data.jsonl")
+        self.output_path: Path = Path("./data/intern_output/chunk_data.jsonl")
         self.dataset_path = Path(dataset_path)
         if self.output_path.exists():
             self.output_path.unlink()
@@ -89,7 +88,7 @@ class FileChunker:
         self.tokenchunker = TokenChunker(
             tokenizer="character",
             chunk_size=chunk_size,
-            chunk_overlap=chunk_size // 20
+            chunk_overlap=chunk_size // 10
         )
         self.count = 0
 
@@ -103,18 +102,18 @@ class FileChunker:
                 List of chunk dictionaries,
                 or None if file type is unsupported.
             """
-        if data.suffix == ".md":
-            chunks = self.md_chonking(data)
-            return chunks
-        elif data.suffix == ".py":
+        if data.suffix == ".py":
             chunks = self.py_chonking(data)
             return chunks
-        # elif data.suffix == ".txt":
-        #     chunks = self.brut_chunk(data)
-        #     return chunks
-        # elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
-        #     chunks = self.magika_chonking(data)
-        #     return chunks
+        elif data.suffix == ".md":
+            chunks = self.md_chonking(data)
+            return chunks
+        elif data.suffix == ".txt":
+            chunks = self.brut_chunk(data)
+            return chunks
+        elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
+            chunks = self.magika_chonking(data)
+            return chunks
 
     def brut_chunk(self, data) -> list[dict[str, Any]]:
         """Chunk a Python file strictly by token count with overlap (No AST)."""
@@ -127,11 +126,12 @@ class FileChunker:
             .chunk_with(
                 "token",
                 chunk_size=self.chunk_size,
-                chunk_overlap=225,
+                chunk_overlap=self.chunk_size // 2,
                 tokenizer="character"
             )
             .run()
         )
+
         chunks = self.metadata_add(py_pipeline, data)
         return chunks
 
@@ -152,22 +152,6 @@ class FileChunker:
         chunks = self.metadata_add(md_pipeline, data)
         return chunks
 
-    # def py_chonking_new(self, data) -> list[dict[str, Any]]:
-    #     """Chunk a Python file using AST code chunking."""
-    #     data_path = str(data)
-    #     with open("src/custom_python.json", "r", encoding="utf-8") as f:
-    #         rules_dict = json.load(f)
-    #     custom_rules = RecursiveRules.from_dict(rules_dict)
-    #     py_pipeline = (
-    #         Pipeline().fetch_from(
-    #             "file", path=data_path)
-    #         .process_with("text")
-    #         .chunk_with("recursive", chunk_size=self.chunk_size,
-    #                     min_characters_per_chunk=1200,
-    #                     tokenizer="character", rules=custom_rules).run())
-    #     chunks = self.metadata_add(py_pipeline, data)
-    #     return chunks
-
     def py_chonking(self, data) -> list[dict[str, Any]]:
         """Chunk a Python file using AST code chunking."""
         data_path = str(data)
@@ -177,10 +161,7 @@ class FileChunker:
                 "file", path=data_path)
 
             .chunk_with("code", language="python", chunk_size=self.chunk_size,
-                        include_nodes=False,
                         tokenizer="character").run())
-        for chunk in py_pipeline.chunks:
-            chunk.token_count = chunk.end_index - chunk.start_index
         chunks = self.metadata_add(py_pipeline, data)
         return chunks
 
@@ -197,14 +178,12 @@ class FileChunker:
                 .chunk_with("code", language=lang,
                             chunk_size=self.chunk_size,
                             tokenizer="character").run())
-            for chunk in magika_pipeline.chunks:
-                chunk.token_count = chunk.end_index - chunk.start_index
             chunks = self.metadata_add(magika_pipeline, data)
             return chunks
         except Exception:
             pass
 
-    def check_chunk_size(self, chunk, datapath) -> Iterator[Chunk]:
+    def check_chunk_size(self, chunk) -> Iterator[Chunk]:
         """Verify chunk size and apply fallback TokenChunker if oversized.
 
         Args:
@@ -214,8 +193,9 @@ class FileChunker:
         Yields:
             Chunk: Original chunk or sub-chunks if fallback was required.
         """
+        chunk_len = chunk.end_index - chunk.start_index
 
-        if chunk.token_count > self.chunk_size:
+        if chunk_len > self.chunk_size:
             new = self.tokenchunker(chunk.text)
             yield from new
         else:
@@ -233,11 +213,16 @@ class FileChunker:
         """
         chunk_list: list[dict[str, Any]] = []
         for chunk in chunked_file.chunks:
+            # print(chunk.token_count)
             if chunk:
-                for sub_chunk in self.check_chunk_size(chunk, str(data_path)):
+                for sub_chunk in self.check_chunk_size(chunk):
                     sub_chunk.metadata["file_path"] = str(data_path)
+                    sub_chunk.metadata["filename"] = data_path.name
                     dict_chunk = sub_chunk.to_dict()
                     chunk_list.append(dict_chunk)
+            # chunk.metadata["file_path"] = str(data_path)
+            # dict_chunk = chunk.to_dict()
+            # chunk_list.append(dict_chunk)
         return chunk_list
 
 

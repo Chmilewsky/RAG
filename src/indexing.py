@@ -29,6 +29,7 @@ class Indexing:
 
         except Exception as e:
             print(f"no chunk_data.jsonl --\n{e}\n----")
+            print(e)
 
         corpus_tokens = bm25s.tokenize(
             self.corpus, stemmer=stemmer, stopwords="en")
