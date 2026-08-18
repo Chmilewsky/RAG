@@ -1,3 +1,5 @@
+from typing import Any
+
 from ollama import chat
 from pathlib import Path
 from tqdm import tqdm
@@ -31,8 +33,6 @@ class MessagePrep:
             self, question_id: str) -> tuple[str, list[MinimalSource]]:
         message = ""
         sources: list[MinimalSource] = []
-        # with open(self.chunk, "r", encoding="UTF-8") as f:
-        #     question_data = json.load(f)
         with open(self.chunk, "r", encoding="UTF-8") as f:
             question_data = StudentSearchResults.model_validate_json(f.read())
         for q in question_data.search_results:
@@ -47,12 +47,12 @@ class MessagePrep:
 
 
 class Answer:
-    def __init__(self, question_file) -> None:
+    def __init__(self, question_file, ) -> None:
         self.model = 'qwen3:0.6b'
         self.question = Path(question_file)
 
     def open_file(self):
-        te = MessagePrep()
+        content = MessagePrep()
         with open(self.question, "r", encoding="UTF-8") as f:
             question_data = RagDataset.model_validate_json(f.read())
         llm_answer_list = []
@@ -60,7 +60,7 @@ class Answer:
 
         for q in question_data.rag_questions:
             results = []
-            msg, source = te.question_add(q.question_id)
+            msg, source = content.question_add(q.question_id)
             # print(msg)
             messages = [
                 {
@@ -89,7 +89,6 @@ class Answer:
         try:
             savefile.write_text(
                 output.model_dump_json(indent=2), encoding="UTF-8")
-
         except Exception as e:
             print(e)
 
@@ -98,6 +97,32 @@ class Answer:
         # pydantic pour sorti
 
         print("finish")
+
+
+class SoloAnswer:
+    def __init__(self, query, k) -> None:
+        self.model = 'qwen3:0.6b'
+        self.question = query
+        self.k = k
+
+    def __call__(self) -> Any:
+        self.answer()
+
+    def answer(self):
+        content = MessagePrep()
+        msg = content.question_add(self.question)
+        messages = [
+            {
+                'role': 'system',
+                'content': 'you are a RAG assistant.'
+            },
+            {
+                'role': 'user',
+                'content': f"{msg}"
+            }
+        ]
+        response = chat(model=self.model, messages=messages)
+        print(f"---{response.message.content}---")
 
 
 if __name__ == "__main__":

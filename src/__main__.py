@@ -1,5 +1,10 @@
 import fire
-from src.index import ChunkIndex, SearchDataset, Search
+from src.index import (
+    ChunkIndex,
+    SearchDataset,
+    Search,
+    SoloAnswer,
+    AnswerDataset)
 
 
 def main():
@@ -7,7 +12,9 @@ def main():
     fire.Fire({
         "index": ChunkIndex,
         "search_dataset": SearchDataset,
-        "search": Search
+        "search": Search,
+        "answer": SoloAnswer,
+        "answer_dataset": AnswerDataset
     })
 
 
