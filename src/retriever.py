@@ -8,7 +8,10 @@ import Stemmer
 
 
 class IndexRetriever:
-    def __init__(self, dataset_path, save_directory, k) -> None:
+    def __init__(self, dataset_path="data/datasets/UnansweredQuestions/"
+                 "dataset_code_public.json",
+                 k=10, save_directory="data/output/"
+                 "search_results/UnansweredQuestions") -> None:
         self.dataset = Path(dataset_path)
         self.k = k
         self.save_path = Path(save_directory)
@@ -84,7 +87,8 @@ class IndexRetriever:
 
 class SoloQuery:
 
-    def __init__(self, question, k) -> None:
+    def __init__(
+            self, question="what is the answer to all question", k=5) -> None:
         self.question = question
         self.k = k
         with open("data/intern_output/chunk_data.jsonl",

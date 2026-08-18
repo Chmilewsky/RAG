@@ -1,21 +1,18 @@
 import fire
-from src.index import (
-    ChunkIndex,
-    SearchDataset,
-    Search,
-    SoloAnswer,
-    AnswerDataset)
+import sys
+try:
+    from src.index import CLI
+except Exception:
+    print("import error")
+    sys.exit(1)
 
 
 def main():
-    # test = FileChunker()
-    fire.Fire({
-        "index": ChunkIndex,
-        "search_dataset": SearchDataset,
-        "search": Search,
-        "answer": SoloAnswer,
-        "answer_dataset": AnswerDataset
-    })
+    try:
+        fire.Fire(CLI)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

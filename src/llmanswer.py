@@ -47,9 +47,17 @@ class MessagePrep:
 
 
 class Answer:
-    def __init__(self, question_file, ) -> None:
+    def __init__(self,
+                 student_search_results_path=(
+                     "data/datasets/UnansweredQuestions/"
+                     "dataset_docs_public.json"),
+                 k=5, save_directory="data/output/"
+                 "search_results/UnansweredQuestions") -> None:
         self.model = 'qwen3:0.6b'
-        self.question = Path(question_file)
+        self.question = Path(student_search_results_path)
+
+    def __call__(self) -> Any:
+        self.open_file()
 
     def open_file(self):
         content = MessagePrep()
