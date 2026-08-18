@@ -1,9 +1,8 @@
-from typing import Any
-
 from src.chunking import ChunkingPipeline
 from src.indexing import Indexing
 from src.retriever import IndexRetriever, SoloQuery
 from src.llmanswer import SoloAnswer, Answer
+from src.evaluation import Eval
 
 
 class CLI:
@@ -48,3 +47,13 @@ class CLI:
             student_search_results_path=student_search_results_path,
             save_directory=save_directory)
         answer_data()
+
+    def evaluate(self,
+                 student_search_results_path: str =
+                 ("data/output/search_results"
+                  "/UnansweredQuestions/dataset_code_public.json"),
+                 dataset_path: str =
+                 ("data/datasets/AnsweredQuestions/dataset_code_public.json")):
+        eval = Eval(student_search_results_path=student_search_results_path,
+                    dataset_path=dataset_path)
+        eval()

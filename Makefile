@@ -51,6 +51,9 @@ answer:
 answer_dataset:
 	uv run python -m src answer_dataset
 
+eval:
+	uv run python -m src evaluate
+
 
 evalcode:
 	./moulinette evaluate_student_search_results data/output/search_results/UnansweredQuestions/dataset_code_public.json data/datasets/AnsweredQuestions/dataset_code_public.json --k 10 --max_context_length 2000
@@ -58,4 +61,4 @@ evaldocs:
 	./moulinette evaluate_student_search_results data/output/search_results/UnansweredQuestions/dataset_docs_public.json data/datasets/AnsweredQuestions/dataset_docs_public.json --k 10 --max_context_length 2000
 
 
-.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset
+.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset eval

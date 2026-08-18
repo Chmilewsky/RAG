@@ -3,7 +3,7 @@ import sys
 import traceback
 from pathlib import Path
 try:
-    from src.index import CLI
+    from src.cli import CLI
 except Exception:
     print("import error")
     sys.exit(1)
@@ -17,7 +17,8 @@ def main():
         file_name = Path(last_call.filename).name
 
         print(
-            f"Erreur: ({e.__class__.__name__}) in {file_name}:{last_call.lineno} [{last_call.name}()]")
+            f"Erreur: ({e.__class__.__name__})"
+            f" in {file_name}:{last_call.lineno} [{last_call.name}()]")
         print(f"Detail : {e}")
         sys.exit(1)
 

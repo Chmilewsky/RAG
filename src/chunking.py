@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 from typing import Any
 from tqdm import tqdm
+from functools import lru_cache
 
 
 class ChunkingPipeline:
@@ -31,6 +32,7 @@ class ChunkingPipeline:
         """Allow the instance to be called directly to start processing."""
         self.run()
 
+    @lru_cache(maxsize=None)
     def run(self) -> None:
         """Run the full chunking pipeline on all target files."""
         p = self.dataset_path
@@ -114,6 +116,7 @@ class FileChunker:
             chunks = self.magika_chonking(data)
             return chunks
 
+    @lru_cache(maxsize=None)
     def brut_chunk(self, data) -> list[dict[str, Any]]:
         """Chunk a Python file strictly by token count with overlap (No AST)."""
         data_path = str(data)
@@ -133,6 +136,7 @@ class FileChunker:
         chunks = self.metadata_add(py_pipeline, data)
         return chunks
 
+    @lru_cache(maxsize=None)
     def md_chonking(self, data) -> list[dict[str, Any]]:
         """Chunk a Markdown file using recursive chunking."""
         data_path = str(data)
@@ -150,6 +154,7 @@ class FileChunker:
         chunks = self.metadata_add(md_pipeline, data)
         return chunks
 
+    @lru_cache(maxsize=None)
     def py_chonking(self, data) -> list[dict[str, Any]]:
         """Chunk a Python file using AST code chunking."""
         data_path = str(data)
@@ -163,6 +168,7 @@ class FileChunker:
         chunks = self.metadata_add(py_pipeline, data)
         return chunks
 
+    @lru_cache(maxsize=None)
     def magika_chonking(self, data) -> list[dict[str, Any]] | None:
         """Identify file language using Magika and apply code chunking."""
         data_path = str(data)

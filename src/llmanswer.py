@@ -1,21 +1,13 @@
 from typing import Any
-
 from ollama import chat
 from pathlib import Path
 from tqdm import tqdm
-from pydantic import ValidationError
 from src.models import (MinimalAnswer,
                         MinimalSource,
                         StudentSearchResults,
                         StudentSearchResultsAndAnswer,
                         RagDataset
                         )
-
-# response = chat(
-#     model='qwen3:0.6b',
-#     messages=[{'role': 'user', 'content': 'Hello!'}],
-# )
-# print(response.message.content)
 
 
 def main():
@@ -69,7 +61,6 @@ class Answer:
         for q in question_data.rag_questions:
             results = []
             msg, source = content.question_add(q.question_id)
-            # print(msg)
             messages = [
                 {
                     'role': 'system',

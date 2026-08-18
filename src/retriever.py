@@ -1,5 +1,4 @@
 import bm25s
-from pydantic import ValidationError
 from pathlib import Path
 from src.models import (MinimalSearchResults, MinimalSource,
                         RagDataset, StudentSearchResults)
@@ -50,13 +49,11 @@ class IndexRetriever:
 
                 retrieved_sources.append(
                     MinimalSource(
-
                         file_path=(self.chunks[index]
                                    ["metadata"]["file_path"]),
                         first_character_index=start,
                         last_character_index=end,
                         chunk_txt=self.chunks[index]["text"]
-
                     ))
 
             search_results.append(
@@ -78,7 +75,6 @@ class IndexRetriever:
 
 
 class SoloQuery:
-
     def __init__(
             self, question="what is the answer to all question", k=5) -> None:
         self.question = question

@@ -19,7 +19,7 @@ class Indexing:
         stemmer = Stemmer.Stemmer("english")
         count_chunk = 0
 
-        with open("./data/intern_output/chunk_data2.jsonl",
+        with open("./data/intern_output/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:
             lines = f.readlines()
             for line in tqdm(lines, desc="tokenizing"):
