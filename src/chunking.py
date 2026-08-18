@@ -45,10 +45,10 @@ class ChunkingPipeline:
                          desc="chunking files", total=total_files):
             try:
                 chunks = self.chunker.file_type_filter(file)
+                if chunks:
+                    self.writer.write(chunks)
             except Exception as e:
-                raise e
-            if chunks:
-                self.writer.write(chunks)
+                print(f"file {e} coulnt be loaded")
 
 
 class FileScanner:
@@ -65,17 +65,16 @@ class FileScanner:
             Path: Next file path to process.
         """
         p = Path(self.data_path)
-        try:
-            if not p.exists():
-                print(f"\nno file or folder at {p.absolute()}\n")
-            elif p.is_dir():
-                for item in p.rglob("*"):
-                    if item.is_file():
-                        yield item
-            elif p.is_file():
-                yield p
-        except PermissionError as e:
-            raise e
+
+        if not p.exists():
+            raise FileNotFoundError(
+                f"no file or folder at {p.absolute()}\n")
+        elif p.is_dir():
+            for item in p.rglob("*"):
+                if item.is_file():
+                    yield item
+        elif p.is_file():
+            yield p
 
 
 class FileChunker:

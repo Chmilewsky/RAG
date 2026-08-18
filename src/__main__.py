@@ -1,5 +1,7 @@
 import fire
 import sys
+import traceback
+from pathlib import Path
 try:
     from src.index import CLI
 except Exception:
@@ -11,7 +13,12 @@ def main():
     try:
         fire.Fire(CLI)
     except Exception as e:
-        print(f"Error: {e}")
+        last_call = traceback.extract_tb(e.__traceback__)[-1]
+        file_name = Path(last_call.filename).name
+
+        print(
+            f"Erreur: ({e.__class__.__name__}) in {file_name}:{last_call.lineno} [{last_call.name}()]")
+        print(f"Detail : {e}")
         sys.exit(1)
 
 

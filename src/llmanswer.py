@@ -94,14 +94,11 @@ class Answer:
         output = StudentSearchResultsAndAnswer(
             search_results=llm_answer_list, k=10)
         savefile = Path("testouput.json")
-        try:
-            savefile.write_text(
-                output.model_dump_json(indent=2), encoding="UTF-8")
-        except Exception as e:
-            print(e)
+        savefile.write_text(
+            output.model_dump_json(indent=2), encoding="UTF-8")
 
-            # for chunk in tqdm(response, desc="llm answer"):
-            #     results.append(chunk.message.content)
+        # for chunk in tqdm(response, desc="llm answer"):
+        #     results.append(chunk.message.content)
         # pydantic pour sorti
 
         print("finish")

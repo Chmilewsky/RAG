@@ -24,22 +24,18 @@ class IndexRetriever:
     def __call__(self) -> None:
         self.retriever()
 
-    def importcheck(self) -> bool:
-        try:
-            with open(self.dataset, "r", encoding="UTF-8") as f:
-                check = RagDataset.model_validate_json(f.read())
-        except ValidationError as e:
-            print(f"Error found : {e}")
+    def importcheck(self) -> bool | None:
+        with open(self.dataset, "r", encoding="UTF-8") as f:
+            check = RagDataset.model_validate_json(f.read())
+        if check:
+            return True
 
     def retriever(self):
         search_results = []
         stemmer = Stemmer.Stemmer("english")
 
-        try:
-            with open(self.dataset, "r", encoding="UTF-8") as f:
-                question = RagDataset.model_validate_json(f.read())
-        except ValidationError as e:
-            print(f"Error found : {e}")
+        with open(self.dataset, "r", encoding="UTF-8") as f:
+            question = RagDataset.model_validate_json(f.read())
 
         for q in question.rag_questions:
             query = q.question
@@ -75,14 +71,10 @@ class IndexRetriever:
 
         savefile = self.save_path / self.dataset.name
         savefile.parent.mkdir(parents=True, exist_ok=True)
-        print(savefile)
-        try:
-            savefile.write_text(
-                final_output.model_dump_json(
-                    indent=2), encoding="UTF-8")
-
-        except Exception as e:
-            print(e)
+        savefile.write_text(
+            final_output.model_dump_json(
+                indent=2), encoding="UTF-8")
+        print(f"Retrieve completed\nFile at: {savefile}")
 
 
 class SoloQuery:
