@@ -10,52 +10,61 @@ from src.models import (MinimalAnswer,
                         )
 
 
-def main():
-    test = Answer(
-        "data/datasets/UnansweredQuestions/dataset_code_public2.json")
-    test.open_file()
-
-
 class MessagePrep:
     def __init__(self) -> None:
-        self.chunk = Path("data/output/search_results/"
-                          "UnansweredQuestions/dataset_code_public.json")
+        self.retrieve = Path("data/output/search_results/"
+                             "UnansweredQuestions/dataset_code_public.json")
 
     def question_add(
             self, question_id: str) -> tuple[str, list[MinimalSource]]:
-        message = ""
+        context_text = ""
         sources: list[MinimalSource] = []
-        with open(self.chunk, "r", encoding="UTF-8") as f:
-            question_data = StudentSearchResults.model_validate_json(f.read())
-        for q in question_data.search_results:
+        with open(self.retrieve, "r", encoding="UTF-8") as f:
+            retrieve_data = StudentSearchResults.model_validate_json(f.read())
+        for q in retrieve_data.search_results:
             if q.question_id == question_id:
                 sources = q.retrieved_sources
-                message += f"question: {q.question} \n"
+                question_text = q.question
                 for r in q.retrieved_sources:
-                    message += f"context {r.chunk_txt} \n"
+                    context_text += f"{r.chunk_txt} \n\n"
                 break
+        message = (
+            f"Context information is below.\n"
+            f"---------------------\n"
+            f"{context_text}\n"
+            f"---------------------\n"
+            f"Given the context information and no prior knowledge, "
+            f"answer the question: {question_text}"
+        )
         message = message[:4000]
         return message, sources
 
 
 class SoloMessagePrep:
     def __init__(self) -> None:
-        self.chunk = Path("data/output/search_results/"
-                          "UnansweredQuestions/solo_answer.json.json")
+        self.retrieve = Path("data/output/search_results/"
+                             "UnansweredQuestions/solo_answer.json")
     def question_add(
             self, question: str) -> tuple[str, list[MinimalSource]]:
-        message = ""
+        context_text = ""
         sources: list[MinimalSource] = []
-        with open(self.chunk, "r", encoding="UTF-8") as f:
-            question_data = StudentSearchResults.model_validate_json(f.read())
-        for q in question_data.search_results:
-            if q.question_id == question_id:
-                sources = q.retrieved_sources
-                message += f"question: {q.question} \n"
-                for r in q.retrieved_sources:
-                    message += f"context {r.chunk_txt} \n"
-                break
-        message = message[:4000]
+        with open(self.retrieve, "r", encoding="UTF-8") as f:
+            retrieve_data = StudentSearchResults.model_validate_json(f.read())
+        msg = retrieve_data.search_results[0]
+        question_text = msg.question
+        q = retrieve_data.search_results[0]
+        for r in q.retrieved_sources:
+            context_text += f"{r.chunk_txt} \n"
+        message = (
+            f"Context information is below.\n"
+            f"---------------------\n"
+            f"{context_text}\n"
+            f"---------------------\n"
+            f"Given the context information and no prior knowledge, "
+            f"answer the question: {question_text}"
+        )
+
+        message = message[:12000]
         return message, sources
 
 
@@ -89,7 +98,13 @@ class Answer:
             messages = [
                 {
                     'role': 'system',
-                    'content': 'you are a RAG assistant.'
+                    'content': (
+                        "You are a helpful and precise coding assistant. "
+                        "Read the provided context"
+                        " carefully and extract the relevant "
+                        "information to answer the user's question."
+                        " Be concise and factual."
+                    )
                 },
                 {
                     'role': 'user',
@@ -125,12 +140,18 @@ class SoloAnswer:
         self.answer()
 
     def answer(self):
-        content = MessagePrep()
+        content = SoloMessagePrep()
         msg = content.question_add(self.question)
         messages = [
             {
                 'role': 'system',
-                'content': 'you are a RAG assistant.'
+                'content': (
+                    "You are a helpful and precise coding assistant. "
+                        "Read the provided context carefully"
+                        " and extract the relevant "
+                        "information to answer the user's question."
+                        " Be concise and factual."
+                )
             },
             {
                 'role': 'user',
@@ -139,7 +160,3 @@ class SoloAnswer:
         ]
         response = chat(model=self.model, messages=messages)
         print(f"---{response.message.content}---")
-
-
-if __name__ == "__main__":
-    main()

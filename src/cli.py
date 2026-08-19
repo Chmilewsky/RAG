@@ -32,7 +32,7 @@ class CLI:
             k=k)
         search_data()
 
-    def answer(self, query: str = "how to configure the OpenAI server?",
+    def answer(self, query: str = "What activation formats does the fused batched MoE layer return in vLLM?",
                k: int = 5) -> None:
         solo_retrieve = SoloQuery(question=query, k=k)
         solo_retrieve()
