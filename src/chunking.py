@@ -89,7 +89,7 @@ class FileChunker:
         self.tokenchunker = TokenChunker(
             tokenizer="character",
             chunk_size=chunk_size,
-            chunk_overlap=chunk_size // 10
+            chunk_overlap=chunk_size // 5
         )
         self.count = 0
 
@@ -129,7 +129,7 @@ class FileChunker:
             .chunk_with(
                 "token",
                 chunk_size=self.chunk_size,
-                chunk_overlap=self.chunk_size // 20,
+                chunk_overlap=self.chunk_size // 5,
                 tokenizer="character"
             )
             .run()

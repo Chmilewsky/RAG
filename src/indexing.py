@@ -24,14 +24,17 @@ class Indexing:
             lines = f.readlines()
             for line in tqdm(lines, desc="tokenizing"):
                 data = json.loads(line)
-                corpus_str = (f"{data['text']}"
-                              f"{data['metadata']['filename']}")
+                text = data['text']
+                filename = data['metadata']['filename']
+                filepath = data['metadata']['file_path']
+                text_expanded = text.replace("_", " ")
+                corpus_str = f"{text} {text_expanded} {filename} {filepath}"
                 self.corpus.append(corpus_str)
                 count_chunk += 1
 
         corpus_tokens = bm25s.tokenize(
             self.corpus, stemmer=stemmer, stopwords="en")
-        retriever = bm25s.BM25()
+        retriever = bm25s.BM25(k1=0.4, b=0.4)
         retriever.index(corpus_tokens)
         retriever.save(str("data/processed"))
         print(
