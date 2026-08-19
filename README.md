@@ -74,7 +74,18 @@ elle permet de faire l indexage et le retrieval.
 elle gere la tokenization(calcul des score) ainsi que la comparaison entre le query et lindexage.
 
 ## Performance analysis
+en fonction du mode de decoupage on peut remarquer une difference notable dans le score.
+jai remarquer que une decoupe brut offre de meilleur resultat que une decoupe propre en fin de titre fnction chapitre ou autre.
+cela et du au mode de calcul du  recall@k qui prend en compte juste loverlap dindex.Donc forcement des gros morceaux brut a plus de chance davoir un overlap que des decoupe precise parfois petite.
 
 ## Design decisions
+le de la librairie chonkie etait par vonlonter de trouver quelque chose moi industriel du style langchain. je cherche un projet open source complet et chonkie a remplie c condition.
 ## Challenges faced
+la prise en main du pipeline de chonkie qui avait une option particulierer pour le markdown et fesait une sorte de pret decoupe / extraction ce qui nuisser a la qualiter du decoupage apres.
+la valeur sur et denvoyer le fichier en mode txt et de lui attribuer une regle de prioriter de decoupage.
 ## Example usage
+pour executer le pipeline en entier il suffit de lancer dans lordre les differente etape configurer par default dans le makefile.
+make install pour mettre en place lenvironement virtuel
+make index pour chunker et indexer les document
+make search_dataset pour retrieve les top k source par rapport au question du dataset.
+make answer_dataset pour envoyer toute les questions ainsi que les source adequate au llm afin de recuperer une json de reponse.
