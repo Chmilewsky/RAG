@@ -118,7 +118,8 @@ class FileChunker:
 
     @lru_cache(maxsize=None)
     def brut_chunk(self, data) -> list[dict[str, Any]]:
-        """Chunk a Python file strictly by token count with overlap (No AST)."""
+        """Chunk a Python file strictly
+          by token count with overlap (No AST)."""
         data_path = str(data)
 
         py_pipeline = (

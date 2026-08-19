@@ -77,6 +77,7 @@ class IndexRetriever:
 class SoloQuery:
     def __init__(
             self, question="what is the answer to all question", k=5) -> None:
+        self.save_path = Path("data/output/search_results/UnansweredQuestions")
         self.question = question
         self.k = k
         with open("data/intern_output/chunk_data.jsonl",
@@ -92,8 +93,41 @@ class SoloQuery:
         query_tokens = bm25s.tokenize(self.question, stemmer=stemmer)
         results, scores = self.import_retriever.retrieve(
             query_tokens, k=self.k)
+        print(f"Question : {self.question} ")
+        search_results = []
+        retrieved_sources = []
         for index in results[0]:
             start = self.chunks[index]["start_index"]
             end = self.chunks[index]["end_index"]
-            path = self.chunks[index]["metadata"]["file_path"]
-            print(f"{path} [{start}:{end}]")
+
+            retrieved_sources.append(
+                MinimalSource(
+                    file_path=(self.chunks[index]
+                               ["metadata"]["file_path"]),
+                    first_character_index=start,
+                    last_character_index=end,
+                    chunk_txt=self.chunks[index]["text"]
+                ))
+
+        search_results.append(
+            MinimalSearchResults(
+                question_id="01",
+                question=self.question,
+                retrieved_sources=retrieved_sources
+            ))
+
+        final_output = StudentSearchResults(
+            search_results=search_results, k=self.k)
+        for source in final_output.search_results:
+            for output in source.retrieved_sources:
+                print(
+                    f"{output.file_path} "
+                    f"[{output.first_character_index}:"
+                    f"{output.last_character_index}]")
+
+        savefile = self.save_path / "solo_answer.json"
+        savefile.parent.mkdir(parents=True, exist_ok=True)
+        savefile.write_text(
+            final_output.model_dump_json(
+                indent=2), encoding="UTF-8")
+        print(f"\n---Retrieve completed---\nFile at: {savefile}")

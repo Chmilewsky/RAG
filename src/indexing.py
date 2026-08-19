@@ -24,7 +24,7 @@ class Indexing:
             lines = f.readlines()
             for line in tqdm(lines, desc="tokenizing"):
                 data = json.loads(line)
-                corpus_str = (f"{data["text"]}"
+                corpus_str = (f"{data['text']}"
                               f"{data['metadata']['filename']}")
                 self.corpus.append(corpus_str)
                 count_chunk += 1

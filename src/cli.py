@@ -34,6 +34,9 @@ class CLI:
 
     def answer(self, query: str = "how to configure the OpenAI server?",
                k: int = 5) -> None:
+        solo_retrieve = SoloQuery(question=query, k=k)
+        solo_retrieve()
+
         solo_answer = SoloAnswer(query=query, k=k)
         solo_answer()
 

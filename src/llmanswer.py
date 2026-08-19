@@ -38,6 +38,27 @@ class MessagePrep:
         return message, sources
 
 
+class SoloMessagePrep:
+    def __init__(self) -> None:
+        self.chunk = Path("data/output/search_results/"
+                          "UnansweredQuestions/solo_answer.json.json")
+    def question_add(
+            self, question: str) -> tuple[str, list[MinimalSource]]:
+        message = ""
+        sources: list[MinimalSource] = []
+        with open(self.chunk, "r", encoding="UTF-8") as f:
+            question_data = StudentSearchResults.model_validate_json(f.read())
+        for q in question_data.search_results:
+            if q.question_id == question_id:
+                sources = q.retrieved_sources
+                message += f"question: {q.question} \n"
+                for r in q.retrieved_sources:
+                    message += f"context {r.chunk_txt} \n"
+                break
+        message = message[:4000]
+        return message, sources
+
+
 class Answer:
     def __init__(self,
                  student_search_results_path=(
@@ -52,13 +73,17 @@ class Answer:
         self.open_file()
 
     def open_file(self):
+        total_q = 0
         content = MessagePrep()
         with open(self.question, "r", encoding="UTF-8") as f:
             question_data = RagDataset.model_validate_json(f.read())
         llm_answer_list = []
         output = []
-
         for q in question_data.rag_questions:
+            total_q += 1
+
+        for q in tqdm(question_data.rag_questions,
+                      desc="Answer", total=total_q):
             results = []
             msg, source = content.question_add(q.question_id)
             messages = [
@@ -87,11 +112,6 @@ class Answer:
         savefile = Path("testouput.json")
         savefile.write_text(
             output.model_dump_json(indent=2), encoding="UTF-8")
-
-        # for chunk in tqdm(response, desc="llm answer"):
-        #     results.append(chunk.message.content)
-        # pydantic pour sorti
-
         print("finish")
 
 

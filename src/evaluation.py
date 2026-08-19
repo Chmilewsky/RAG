@@ -7,7 +7,8 @@ class Eval:
                  "data/output/search_results"
                  "/UnansweredQuestions/dataset_code_public.json",
                  dataset_path: str =
-                 "data/datasets/AnsweredQuestions/dataset_code_public.json") -> None:
+                 "data/datasets/"
+                 "AnsweredQuestions/dataset_code_public.json") -> None:
         with open(student_search_results_path, "r", encoding="Utf-8") as f:
             self.student_data = StudentSearchResults.model_validate_json(
                 f.read())
