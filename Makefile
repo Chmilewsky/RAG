@@ -24,6 +24,7 @@ clean:
 fclean: clean
 	@echo "🧹 $(YELLOW)Cleaning .venv in progress...$(RESET)"
 	@rm -rf .venv
+	@echo "✨ $(GREEN)Everything is clean !$(RESET)"
 
 
 lint:

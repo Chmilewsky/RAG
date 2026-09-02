@@ -2,90 +2,168 @@
 
 # Description
 
-Le projet consist a la creation dun rag.
-le rag(Retrieval-Augmented Generation) est une technique utiliser pour permetre un un llm de pouvoir puisser des connaissance dans une base de donnee (document perso fichier ou autre) afin de repondre au mieux au questio en ce basant sur c document.
-le proccess du rag et de recuperer les document est de les couper en morceaux de max predifinie, tout en gardant au maximum le context. ce qui veut dire couper a la fin de chapitre pour le txt ou bien a la fin de class ou de metode pour le code ou en fonction des titre pour du markdown ... et de cree un json/base de donner
-contenant tout les infos sur chaque decoupe. dou i vient les index de depart et de fin.
+This project implements a lightweight **Retrieval-Augmented Generation (RAG)** pipeline.
 
-une fois cette decoupe faite on lenvoi a travers un algorythm  de calcul de score pour mot dans mon cas le BM25.
-le BM25 attribuer (Index) un score en fonction de la repitition de la rareter des mots en fonction de la taille dun document tout en limitant le score pour des mot repeter trop souvent (ot de liason : a, is, it, for ...)
+Retrieval-Augmented Generation is a technique that enables a Large Language Model (LLM) to reference external knowledge sources—such as local documents, source code, and text files—to generate accurate, context-grounded answers and eliminate hallucinations.
 
-a partir de la on fait la meme chose pour un query et on recherche le score le plus proche dans lindexage et on liste les top reponse.
+### How the Pipeline Works
 
-grace a tout cela on inject les donner des chunk pertinent au llm afin qui puisse avoir un context supplementaire que la question en elle meme et de repndre a partir de sont context.
+1. **Document Ingestion & Chunking**: Target files are loaded and divided into segments under a defined maximum character threshold while preserving semantic integrity (e.g., splitting at chapter breaks for plain text, class/method boundaries for code, or header sections for Markdown). Each chunk is stored with its structural metadata, including source file provenance and start/end character offsets.
+2. **Lexical Indexing (BM25)**: Chunks are indexed using the BM25 algorithm. BM25 scores terms based on term frequency (TF) and inverse document frequency (IDF) while adjusting for document length and penalizing non-discriminative stop words (e.g., *a*, *is*, *it*, *for*).
+3. **Query Matching & Retrieval**: When a query is submitted, it undergoes identical tokenization and scoring against the index to identify and rank the top-$k$ most relevant document chunks.
+4. **Context Augmentation & Generation**: The top-$k$ chunks are formatted into an augmented context block and injected into the LLM prompt alongside the original query (`Prompt = Retrieved Context + User Question`), allowing the model to produce a grounded response.
 
-
+---
 
 # Instructions
 
-le makefile dispo de ancement par default pour le projet
+The project includes a `Makefile` with targets to manage the complete lifecycle from dependency setup to evaluation:
 
-make install pour installer toute les dependance
-make index pour lancer le chunkage suivi de l'indexage
-make search pour avoir un score de reponse pour 1 seul query
-make search_dataset pour lancer le document complet de query et avoir le score
-make answer repond a une question via le llm en ce basant sur un search_dataset
-make answer_dataset repond a toute les question dans le dataset
-make evaluate permet ede calcul son score de son retriever sur les retreiver de reference.
+| Command | Description |
+| --- | --- |
+| `make install` | Set up the virtual environment and install all dependencies |
+| `make index` | Chunk source documents and build the BM25 lexical index |
+| `make search` | Run a test query and display the top ranked chunks with relevance scores |
+| `make search_dataset` | Execute retrieval across the entire benchmark query dataset |
+| `make answer` | Generate an LLM response for a single query using retrieved context |
+| `make answer_dataset` | Run the complete question dataset through the LLM and export answers to JSON |
+| `make evaluate` | Compute retriever evaluation metrics (e.g., Recall@k) against reference baselines |
+
+---
 
 # Resources
 
-https://www.geeksforgeeks.org/python/python-how-to-make-a-terminal-progress-bar-using-tqdm/
-https://www.w3schools.com/python/ref_module_ast.asp
-https://www.geeksforgeeks.org/nlp/what-is-bm25-best-matching-25-algorithm/
+* [Chonkie Documentation](https://docs.chonkie.ai/common/welcome) — Lightweight chunking library for RAG applications.
+* [Chonkie GitHub Repository](https://github.com/feyninc/chonkie) — Source code and implementation concepts.
+* [BM25S PyPI Package](https://pypi.org/project/bm25s/0.1.5/) — Fast BM25 implementation in Python.
+* [BM25S GitHub Repository](https://github.com/xhluca/bm25s) — Lexical search indexer using sparse matrices.
+* [BM25 Algorithm Overview (GeeksforGeeks)](https://www.geeksforgeeks.org/nlp/what-is-bm25-best-matching-25-algorithm/) — Algorithmic explanation of Best Matching 25.
+* [Python AST Module (W3Schools)](https://www.w3schools.com/python/ref_module_ast.asp) — Reference for Abstract Syntax Tree parsing in Python.
+* [TQDM Progress Bar Guide (GeeksforGeeks)](https://www.geeksforgeeks.org/python/python-how-to-make-a-terminal-progress-bar-using-tqdm/) — Progress bar utilities for batch operations.
+* https://docs.trychroma.com/docs/overview/getting-started
 
-https://github.com/feyninc/chonkie
-https://docs.chonkie.ai/common/welcome
-https://github.com/xhluca/bm25s
-
-
-
-La sauvegarde native de bm25s est beaucoup plus rapide qu'un JSON pour trois raisons principales :
-
-1. Binaire vs Texte
-JSON est un format texte. Pour enregistrer un nombre comme 0.12345678, JSON écrit 10 caractères (10 octets).
-
-En binaire (le format utilisé par bm25s via des fichiers .npy), ce même nombre est écrit sous forme de float32 qui prend toujours 4 octets fixes, peu importe sa précision.
-
-2. Copie mémoire directe (Zero-Parsing)
-En JSON : Au moment de charger, Python doit lire le texte caractère par caractère, analyser la syntaxe (virgules, crochets) et convertir chaque chaîne de caractères en nombre dans la RAM. C'est très gourmand en CPU.
-
-En Binaire (bm25s) : Le programme fait une copie directe des octets du disque vers la mémoire (ou utilise du mmap). Le CPU n'a aucun calcul de conversion à faire : les données arrivent en RAM prêtes à être utilisées par les structures C/NumPy.
-
-3. Compression des matrices creuses (Sparse Matrices)
-Un index BM25 est une matrice géante remplie en majorité de zéros (la plupart des mots n'apparaissent pas dans la plupart des documents). bm25s stocke uniquement les valeurs non nulles et leurs positions sous forme de tableaux d'indices binaires (format CSR/CSC), ce qui réduit drastiquement la taille sur le disque.
+---
 
 # Additional
 
 ## System architecture
 
-mon pipeline consiste a un decoupage couple a un indexage. apres je retrieve  les sources des reponse potentiel au question. et jenvoi tout ca dans le llm
+The system follows a sequential, decoupled retrieval and generation architecture:
+
+```
+┌─────────────────┐
+│ Raw Documents   │ (Text, Code, Markdown)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Chunking Engine │ (Chonkie: structural boundaries + metadata extraction)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Lexical Indexer │ (bm25s: tokenization, BM25 scoring, sparse matrices)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Query Retriever │ (Token matching, top-k scoring)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Prompt Assembly │ (System instructions + Retrieved Context + Query)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ LLM Engine      │ (Grounded answer generation -> JSON output)
+└─────────────────┘
+
+```
+
+---
 
 ## Chunking strategy
 
-jutilise une librairie nommer chonkie https://docs.chonkie.ai/common/concepts.
-elle permet offre la possibliter de faire des decoupe specifique en fonction du type de fichier.
-elle possde une lsite de priorite de decoupe afin davoir un chunk qui tente datteindre la taille maximal tout en gardant un context logique. Pas de decoupe en plein milieu de phrase il va preferer couper apres un fonction si il a pas la palce de metre la suite.
-ca lui arrive parfois de depasser legerement car il veut pas couper en plein milieu. donc je verifier les taille des chunk et jutilise un decoupeur brut ou je coupe a la limite de taille et attribue un overlap au chunk suivant afin de garder le context davant.
+Chunking is handled using the `chonkie` library:
+
+* **Format-Specific Splitting**: Provides tailored splitting rules based on file types to maintain semantic cohesion.
+* **Priority-Based Hierarchy**: Splitting rules prioritize structural breakpoints (e.g., function boundaries, classes, markdown headers, paragraph breaks) rather than cutting mid-sentence.
+* **Boundary Validation & Sliding Fallback**: Semantic splitting can occasionally exceed maximum character limits when avoiding awkward breaks. To enforce strict token limits, chunks undergo size validation. Chunks that exceed the boundary are processed through a fixed-size fallback splitter with character overlap to preserve context across splits.
+
+---
 
 ## Retrieval method
-jutilise la librairy bm25s https://pypi.org/project/bm25s/0.1.5/
-elle permet de faire l indexage et le retrieval.
-elle gere la tokenization(calcul des score) ainsi que la comparaison entre le query et lindexage.
+
+Retrieval and indexing are powered by `bm25s`, which handles tokenization, corpus scoring, and ranking:
+
+### What is BM25?
+
+BM25 is a ranking algorithm used by retrieval engines (e.g., Elasticsearch, Lucene) to score document relevance against a search query, improving upon standard TF-IDF.
+
+---
+
+### Core Mechanics
+
+* **Term Frequency (TF) Saturation**: Tracks query term occurrences with diminishing returns. Beyond a saturation threshold, repeated occurrences no longer scale the score linearly, mitigating keyword stuffing.
+* **Inverse Document Frequency (IDF)**: Dynamically weights term specificity. Common words across the corpus (e.g., *"the"*, *"using"*) receive minimal weight, while rare terms receive higher relevance scores.
+* **Document Length Normalization**: Adjusts scoring relative to average corpus length, penalizing artificially inflated match counts in long documents to keep evaluation fair for concise texts.
+
+---
+
+| Component | Mechanism | Objective |
+| --- | --- | --- |
+| **TF Saturation** | Applies a diminishing return ceiling to term counts | Prevents keyword spam bias |
+| **IDF Penalty** | Evaluates document frequency across the whole corpus | Prioritizes rare, discriminative terms |
+| **Length Normalization** | Compares document size against corpus average | Eliminates document length bias |
+
+
 
 ## Performance analysis
-en fonction du mode de decoupage on peut remarquer une difference notable dans le score.
-jai remarquer que une decoupe brut offre de meilleur resultat que une decoupe propre en fin de titre fnction chapitre ou autre.
-cela et du au mode de calcul du  recall@k qui prend en compte juste loverlap dindex.Donc forcement des gros morceaux brut a plus de chance davoir un overlap que des decoupe precise parfois petite.
+
+Empirical evaluation reveals distinct performance variations based on the chunking strategy:
+
+* **Fixed Overlap vs. Semantic Splits**: Brute-force fixed chunking with overlap consistently scored higher on **Recall@k** benchmarks than clean semantic chunking (at functions, titles, or chapters).
+* **Metric Bias**: Standard Recall@k measures character and token index overlap against reference answer spans. Uniformly distributed, overlapping chunks offer broader spatial coverage across document offsets, increasing the probability of intersecting ground-truth spans compared to variable-sized semantic segments.
+
+---
 
 ## Design decisions
-le de la librairie chonkie etait par vonlonter de trouver quelque chose moi industriel du style langchain. je cherche un projet open source complet et chonkie a remplie c condition.
+
+* **Lightweight Architecture over Monolithic Frameworks**: `chonkie` was chosen instead of heavy frameworks such as LangChain. It provides a focused, dependency-light open-source implementation with direct control over chunk boundaries and character offsets.
+* **Embedded Lexical Search**: Using `bm25s` eliminates the need for dedicated search infrastructure (e.g., Elasticsearch, OpenSearch) while delivering high-throughput lexical retrieval and native sparse matrix persistence.
+
+---
+
 ## Challenges faced
-la prise en main du pipeline de chonkie qui avait une option particulierer pour le markdown et fesait une sorte de pret decoupe / extraction ce qui nuisser a la qualiter du decoupage apres.
-la valeur sur et denvoyer le fichier en mode txt et de lui attribuer une regle de prioriter de decoupage.
+
+* **Markdown Pre-Processing Artifacts**: `chonkie`'s built-in Markdown splitter performed pre-extraction routines that aggressively stripped headers and fragmented content, degrading downstream chunk quality.
+* **Solution**: Markdown files were ingested using standard text mode configured with explicit priority split rules, preserving document structure without unwanted pre-extraction.
+
+
+* **Strict Boundary Enforcement**: Balancing semantic unit completeness with hard character limits required implementing a secondary validation pass with overlapping cuts.
+
+---
+
 ## Example usage
-pour executer le pipeline en entier il suffit de lancer dans lordre les differente etape configurer par default dans le makefile.
-make install pour mettre en place lenvironement virtuel
-make index pour chunker et indexer les document
-make search_dataset pour retrieve les top k source par rapport au question du dataset.
-make answer_dataset pour envoyer toute les questions ainsi que les source adequate au llm afin de recuperer une json de reponse.
+
+To run the entire pipeline from environment setup to final response generation:
+
+```bash
+# 1. Install dependencies
+make install
+
+# 2. Chunk source documents and build the BM25 index
+make index
+
+# 3. Retrieve relevant sources for all dataset queries
+make search_dataset
+
+# 4. Generate grounded LLM answers for all dataset queries
+make answer_dataset
+
+# 5. Evaluate retriever accuracy against reference baselines
+make evaluate
+
+```
