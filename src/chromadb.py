@@ -1,13 +1,13 @@
 from typing import Any
 from tqdm import tqdm
 import json
-
 import chromadb
 
 
 class SemanticEmbeddings:
     def __init__(self) -> None:
-        self.client = chromadb.PersistentClient(path="data/intern_output")
+        self.client = chromadb.PersistentClient(
+            path="data/intern_output/vector_DataBase")
         self.collection = self.client.create_collection(name="my_collection")
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:

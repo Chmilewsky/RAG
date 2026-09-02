@@ -4,6 +4,7 @@ from src.retriever import IndexRetriever, SoloQuery
 from src.llmanswer import SoloAnswer, Answer
 from src.evaluation import Eval
 from src.chromadb import SemanticEmbeddings
+from src.hybrid_retrieval import HybridRetrieval
 
 
 class CLI:
@@ -73,3 +74,14 @@ class CLI:
         indexing.build_index()
         semantic = SemanticEmbeddings()
         semantic()
+
+    def hybrid(
+        self, dataset_path="data/datasets/UnansweredQuestions/"
+        "dataset_code_public.json",
+            k=10, save_directory="data/output/"
+            "search_results/UnansweredQuestions"):
+        search_data = HybridRetrieval(
+            dataset_path=dataset_path,
+            save_directory=save_directory,
+            k=k)
+        search_data()
