@@ -3,6 +3,7 @@ from src.indexing import Indexing
 from src.retriever import IndexRetriever, SoloQuery
 from src.llmanswer import SoloAnswer, Answer
 from src.evaluation import Eval
+from src.chromadb import SemanticEmbeddings
 
 
 class CLI:
@@ -60,3 +61,15 @@ class CLI:
         eval = Eval(student_search_results_path=student_search_results_path,
                     dataset_path=dataset_path)
         eval()
+
+    def semantic(self, max_chunk_size: int = 2000,
+                 dataset_path: str = "./data/raw/vllm-0.10.1") -> None:
+        chunker = ChunkingPipeline(
+            chunk_size=max_chunk_size,
+            dataset_path=dataset_path
+        )
+        chunker.run()
+        indexing = Indexing()
+        indexing.build_index()
+        semantic = SemanticEmbeddings()
+        semantic()

@@ -39,3 +39,8 @@ class Indexing:
         retriever.save(str("data/processed"))
         print(
             f"Ingestion complete! Indexed {count_chunk} under data/processed")
+
+
+class SemanticEmbeddings:
+    def __init__(self) -> None:
+        pass

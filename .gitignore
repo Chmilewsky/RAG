@@ -7,3 +7,5 @@ vllm-0.10.1
 !src/custom_markdown.json
 *.npy
 *.jsonl
+*.sqlite3
+data/

@@ -218,7 +218,6 @@ class FileChunker:
         """
         chunk_list: list[dict[str, Any]] = []
         for chunk in chunked_file.chunks:
-            # print(chunk.token_count)
             if chunk:
                 for sub_chunk in self.check_chunk_size(chunk):
                     sub_chunk.metadata["file_path"] = str(data_path)
@@ -226,6 +225,25 @@ class FileChunker:
                     dict_chunk = sub_chunk.to_dict()
                     chunk_list.append(dict_chunk)
         return chunk_list
+
+    def semantic_chonking(self, data) -> list[dict[str, Any]]:
+        data_path = str(data)
+
+        semantic_pipeline = (
+            Pipeline()
+            .fetch_from("file", path=data_path)
+            .chunk_with(
+                "semantic",
+                embedding_model="minishlab/potion-base-32M",
+                threshold=0.7,
+                similarity_window=3,
+                skip_window=0,
+                chunk_size=self.chunk_size,
+            )
+            .run()
+        )
+        chunks = self.metadata_add(semantic_pipeline, data)
+        return chunks
 
 
 class JsonWriter:
