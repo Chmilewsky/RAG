@@ -6,6 +6,7 @@ from src.evaluation import Eval
 from src.chromadb import SemanticEmbeddings
 from src.hybrid_retrieval import HybridRetrieval
 from src.ollama_server import OllamaService
+import sys
 
 
 class CLI:
@@ -15,20 +16,39 @@ class CLI:
     def index(self, max_chunk_size: int = 2000,
               dataset_path: str = "./data/raw/vllm-0.10.1") -> None:
         """Run the chunking pipeline on raw files and build the BM25 index."""
-
-        chunker = ChunkingPipeline(
-            chunk_size=max_chunk_size,
-            dataset_path=dataset_path
-        )
-        chunker.run()
-        indexing = Indexing()
-        indexing.build_index()
+        if not 200 <= max_chunk_size <= 2000:
+            print("Max chunk size must be between 200 and 2000")
+            sys.exit(1)
+        if not dataset_path.strip():
+            print("path for data set cant be empty")
+            sys.exit(1)
+        try:
+            chunker = ChunkingPipeline(
+                chunk_size=max_chunk_size,
+                dataset_path=dataset_path
+            )
+            chunker.run()
+            indexing = Indexing()
+            indexing.build_index()
+        except FileNotFoundError as e:
+            print(f"File or directory not found: {e}", file=sys.stderr)
+            sys.exit(1)
 
     def search(self, query: str = "What activation formats does the fused\
                 batched MoE layer return in vLLM?", k: int = 5) -> None:
         """Execute a single-query BM25 search and print matching chunks."""
-        solo_retrieve = SoloQuery(question=query, k=k)
-        solo_retrieve()
+        if k <= 0:
+            print("k must be superior to 0")
+            sys.exit(1)
+        if not query.strip():
+            print("query cant be empty")
+            sys.exit(1)
+        try:
+            solo_retrieve = SoloQuery(question=query, k=k)
+            solo_retrieve()
+        except FileNotFoundError as e:
+            print(f"File or directory not found: {e}", file=sys.stderr)
+            sys.exit(1)
 
     def search_dataset(
         self, dataset_path: str = "data/datasets/UnansweredQuestions/"

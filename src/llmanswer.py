@@ -18,29 +18,20 @@ class MessagePrep:
         self.retrieve = path
 
     def question_add(
-            self, question_id: str) -> tuple[str, list[MinimalSource]]:
+        self, question: str,
+            sources: list[MinimalSource]) -> tuple[str, list[MinimalSource]]:
         """Build a context-injected prompt and
           return candidate sources for a question."""
-        context_text = ""
-        sources: list[MinimalSource] = []
-        with open(self.retrieve, "r", encoding="UTF-8") as f:
-            retrieve_data = StudentSearchResults.model_validate_json(f.read())
-        for q in retrieve_data.search_results:
-            if q.question_id == question_id:
-                sources = q.retrieved_sources
-                question_text = q.question
-                for r in q.retrieved_sources:
-                    context_text += f"{r.chunk_txt} \n\n"
-                break
+        context_text = "\n\n".join(r.chunk_txt for r in sources if r.chunk_txt)
+
         message = (
             f"Context information is below.\n"
             f"---------------------\n"
-            f"{context_text}\n"
+            f"{context_text[:12000]}\n"
             f"---------------------\n"
             f"Given the context information and no prior knowledge, "
-            f"answer the question: {question_text}"
+            f"answer the question: {question}"
         )
-        message = message[:4000]
         return message, sources
 
 
@@ -53,7 +44,7 @@ class SoloMessagePrep:
                              "UnansweredQuestions/solo_answer.json")
 
     def question_add(
-            self, question: str) -> str:
+            self, question: str, k: int) -> str:
         """Build a context-injected prompt and
           return candidate sources for a single question."""
         context_text = ""
@@ -62,7 +53,7 @@ class SoloMessagePrep:
         msg = retrieve_data.search_results[0]
         question_text = msg.question
         q = retrieve_data.search_results[0]
-        for r in q.retrieved_sources:
+        for r in q.retrieved_sources[:k]:
             context_text += f"{r.chunk_txt} \n"
         message = (
             f"Context information is below.\n"
@@ -82,7 +73,7 @@ class Answer:
                  student_search_results_path: str = (
                      "data/output/search_results/"
                      "UnansweredQuestions/dataset_code_public.json"),
-                 k: int = 5, save_directory: str = "data/output/"
+                 save_directory: str = "data/output/"
                  "search_results/UnansweredQuestions") -> None:
         """Initialize target model, dataset paths, and retrieval parameters."""
         self.model = 'qwen3:0.6b'
@@ -96,18 +87,15 @@ class Answer:
     def process_answers(self) -> None:
         """Iterate over dataset questions, query Ollama with context,
           and export answers to JSON."""
-        total_q = 0
         content = MessagePrep(self.question)
         with open(self.question, "r", encoding="UTF-8") as f:
             question_data = StudentSearchResults.model_validate_json(f.read())
         llm_answer_list = []
-        for q in question_data.search_results:
-            total_q += 1
 
         for q in tqdm(question_data.search_results,
-                      desc="Answer", total=total_q):
+                      desc="Answer", total=len(question_data.search_results)):
             results = []
-            msg, source = content.question_add(q.question_id)
+            msg, source = content.question_add(q.question, q.retrieved_sources)
             messages = [
                 {
                     'role': 'system',
@@ -136,7 +124,7 @@ class Answer:
             llm_answer_list.append(llm_answer)
 
             output = StudentSearchResultsAndAnswer(
-                search_results=llm_answer_list, k=10)
+                search_results=llm_answer_list, k=question_data.k)
             savefile = Path(f"{self.save_path}/llm_answer.json")
             savefile.parent.mkdir(parents=True, exist_ok=True)
             savefile.write_text(
@@ -161,7 +149,7 @@ class SoloAnswer:
         """Query Ollama with context retrieved for the single question and
           print the output."""
         content = SoloMessagePrep()
-        msg = content.question_add(self.question)
+        msg = content.question_add(self.question, self.k)
         messages = [
             {
                 'role': 'system',
