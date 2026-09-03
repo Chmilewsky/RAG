@@ -5,6 +5,7 @@ from src.llmanswer import SoloAnswer, Answer
 from src.evaluation import Eval
 from src.chromadb import SemanticEmbeddings
 from src.hybrid_retrieval import HybridRetrieval
+from src.ollama_server import OllamaService
 
 
 class CLI:
@@ -42,10 +43,13 @@ class CLI:
             k=k)
         search_data()
 
-    def answer(self, query: str = "What activation formats does the fused\
-                batched MoE layer return in vLLM?", k: int = 5) -> None:
+    def answer(self, query: str = ("What activation formats does the fused"
+                                   "batched MoE layer return in vLLM?"),
+               k: int = 5) -> None:
         """Retrieve context for a single query and
           generate an answer using the LLM."""
+        service = OllamaService()
+        service.start()
         solo_retrieve = SoloQuery(question=query, k=k)
         solo_retrieve()
 
@@ -59,6 +63,8 @@ class CLI:
                        k: int = 5, save_directory: str = "data/output/"
                        "search_results/UnansweredQuestions") -> None:
         """Generate LLM answers in batch for an evaluation dataset."""
+        service = OllamaService()
+        service.start()
         answer_data = Answer(
             student_search_results_path=student_search_results_path,
             save_directory=save_directory)

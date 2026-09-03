@@ -5,6 +5,7 @@ from src.models import (MinimalSearchResults, MinimalSource,
                         RagDataset, StudentSearchResults)
 import bm25s
 import chromadb
+from tqdm import tqdm
 
 
 class HybridRetrieval:
@@ -52,9 +53,10 @@ class HybridRetrieval:
         with open(self.dataset, "r", encoding="UTF-8") as f:
             question = RagDataset.model_validate_json(f.read())
 
-        for q in question.rag_questions:
+        for q in tqdm(question.rag_questions):
             query = q.question
-            query_tokens = bm25s.tokenize(query, stemmer=stemmer)
+            query_tokens = bm25s.tokenize(query, stemmer=stemmer,
+                                          stopwords="en")
             retrieved_sources = []
 
             results, scores = self.import_retriever.retrieve(

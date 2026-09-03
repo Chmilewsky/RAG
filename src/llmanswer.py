@@ -135,16 +135,16 @@ class Answer:
                 retrieved_sources=source,
                 answer=response.message.content or "")
 
-            print(f"---{response.message.content}---")
+            # print(f"---{response.message.content}---")
             results.append(response.message.content)
             llm_answer_list.append(llm_answer)
 
-        output = StudentSearchResultsAndAnswer(
-            search_results=llm_answer_list, k=10)
-        savefile = Path("llm_answer.json")
-        savefile.write_text(
-            output.model_dump_json(indent=2), encoding="UTF-8")
-        print("finish")
+            output = StudentSearchResultsAndAnswer(
+                search_results=llm_answer_list, k=10)
+            savefile = Path("llm_answer.json")
+            savefile.write_text(
+                output.model_dump_json(indent=2), encoding="UTF-8")
+            print("finish")
 
 
 class SoloAnswer:
@@ -182,4 +182,6 @@ class SoloAnswer:
             }
         ]
         response = chat(model=self.model, messages=messages)
-        print(f"---{response.message.content}---")
+        print("\n---LLM ANSWER---")
+        print(response.message.content)
+        print("---END---")

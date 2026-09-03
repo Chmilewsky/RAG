@@ -4,6 +4,7 @@ from src.models import (MinimalSearchResults, MinimalSource,
                         RagDataset, StudentSearchResults)
 import json
 import Stemmer
+from tqdm import tqdm
 
 
 class IndexRetriever:
@@ -47,9 +48,10 @@ class IndexRetriever:
         with open(self.dataset, "r", encoding="UTF-8") as f:
             question = RagDataset.model_validate_json(f.read())
 
-        for q in question.rag_questions:
+        for q in tqdm(question.rag_questions):
             query = q.question
-            query_tokens = bm25s.tokenize(query, stemmer=stemmer)
+            query_tokens = bm25s.tokenize(query, stemmer=stemmer,
+                                          stopwords="en")
 
             results, scores = self.import_retriever.retrieve(
                 query_tokens, k=self.k)
@@ -109,16 +111,19 @@ class SoloQuery:
         """Retrieve top-k chunks for the query,
           print matches, and save results to JSON."""
         stemmer = Stemmer.Stemmer("english")
-        query_tokens = bm25s.tokenize(self.question, stemmer=stemmer)
+        query_tokens = bm25s.tokenize(self.question, stemmer=stemmer,
+                                      stopwords="en")
         results, scores = self.import_retriever.retrieve(
             query_tokens, k=self.k)
-        print(f"Question : {self.question} ")
+        print("\n---RESULTS---")
+        print(f"Question: {self.question}\n")
+        print("---SOURCE---")
+
         search_results = []
         retrieved_sources = []
         for index in results[0]:
             start = self.chunks[index]["start_index"]
             end = self.chunks[index]["end_index"]
-
             retrieved_sources.append(
                 MinimalSource(
                     file_path=(self.chunks[index]
@@ -149,4 +154,5 @@ class SoloQuery:
         savefile.write_text(
             final_output.model_dump_json(
                 indent=2), encoding="UTF-8")
-        print(f"\n---Retrieve completed---\nFile at: {savefile}")
+        # print("\n---Retrieve completed---")
+        # print(f"File at: {savefile}")

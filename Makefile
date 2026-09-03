@@ -6,6 +6,9 @@ install:
 	@echo "🔧 $(YELLOW)Installation...$(RESET)"
 	@uv sync
 	@echo "✅ $(GREEN)Environment ready !$(RESET)"
+
+
+
 run:
 	@echo "🚀 $(YELLOW)Project launch..$(RESET)"
 	@uv run python3 -m src
@@ -67,5 +70,7 @@ evalcode:
 evaldocs:
 	./moulinette evaluate_student_search_results data/output/search_results/UnansweredQuestions/dataset_docs_public.json data/datasets/AnsweredQuestions/dataset_docs_public.json --k 10 --max_context_length 2000
 
+kill:
+	pkill ollama
 
-.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset eval semantic hybrid
+.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset eval semantic hybrid kill

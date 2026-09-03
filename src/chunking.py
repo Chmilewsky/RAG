@@ -5,7 +5,6 @@ from pathlib import Path
 import json
 from typing import Any
 from tqdm import tqdm
-from functools import lru_cache
 
 
 class ChunkingPipeline:
@@ -32,7 +31,6 @@ class ChunkingPipeline:
         """Allow the instance to be called directly to start processing."""
         self.run()
 
-    @lru_cache(maxsize=None)
     def run(self) -> None:
         """Run the full chunking pipeline on all target files."""
         p = self.dataset_path
@@ -116,7 +114,6 @@ class FileChunker:
             return self.magika_chonking(data)
         return None
 
-    @lru_cache(maxsize=None)
     def brut_chunk(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Python file strictly
           by token count with overlap (No AST)."""
@@ -137,7 +134,6 @@ class FileChunker:
         chunks = self.metadata_add(py_pipeline, data)
         return chunks
 
-    @lru_cache(maxsize=None)
     def md_chonking(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Markdown file using recursive chunking."""
         data_path = str(data)
@@ -155,7 +151,6 @@ class FileChunker:
         chunks = self.metadata_add(md_pipeline, data)
         return chunks
 
-    @lru_cache(maxsize=None)
     def py_chonking(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Python file using AST code chunking."""
         data_path = str(data)
@@ -169,7 +164,6 @@ class FileChunker:
         chunks = self.metadata_add(py_pipeline, data)
         return chunks
 
-    @lru_cache(maxsize=None)
     def magika_chonking(self, data: Path) -> list[dict[str, Any]] | None:
         """Identify file language using Magika and apply code chunking."""
         data_path = str(data)
@@ -201,8 +195,11 @@ class FileChunker:
         chunk_len = chunk.end_index - chunk.start_index
 
         if chunk_len > self.chunk_size:
-            new = self.tokenchunker(chunk.text)
-            yield from new
+            offset = chunk.start_index
+            for sub_chunk in self.tokenchunker(chunk.text):
+                sub_chunk.start_index += offset
+                sub_chunk.end_index += offset
+                yield sub_chunk
         else:
             yield chunk
 

@@ -1,5 +1,6 @@
 from src.models import (StudentSearchResults, RagDataset,
-                        AnsweredQuestion, UnansweredQuestion)
+                        AnsweredQuestion, UnansweredQuestion,
+                        MinimalSource)
 from typing import Any
 
 
@@ -57,20 +58,24 @@ class Eval:
         print(f"recall@5: {rk5:.2f} ({rk5 * 100:.1f}%)")
         print(f"recall@10: {rk10:.2f} ({rk10 * 100:.1f}%)")
 
-    def krecall(self, src: list, q: AnsweredQuestion
+    def krecall(self, src: list[MinimalSource], q: AnsweredQuestion
                 | UnansweredQuestion, k: int) -> int:
         """Check whether at least one top-k retrieved source
           meets the file and overlap thresholds."""
-        if isinstance(q, UnansweredQuestion) or not q.sources:
+        sources = getattr(q, "sources", None)
+        if not sources:
             return 0
-        for i in range(k):
-            if src[i].file_path == q.sources[0].file_path:
-                x, y = (src[i].first_character_index,
-                        src[i].last_character_index)
-                a, b = (q.sources[0].first_character_index,
-                        q.sources[0].last_character_index)
-                if self.overlap((x, y), (a, b)) >= 0.05:
-                    return 1
+        limit = min(k, len(src))
+
+        for i in range(limit):
+            for source in sources:
+                if src[i].file_path == source.file_path:
+                    x, y = (src[i].first_character_index,
+                            src[i].last_character_index)
+                    a, b = (source.first_character_index,
+                            source.last_character_index)
+                    if self.overlap((x, y), (a, b)) >= 0.05:
+                        return 1
 
         return 0
 
