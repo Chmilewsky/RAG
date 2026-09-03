@@ -1,4 +1,5 @@
-from src.models import StudentSearchResults, RagDataset
+from src.models import (StudentSearchResults, RagDataset,
+                        AnsweredQuestion, UnansweredQuestion)
 from typing import Any
 
 
@@ -56,9 +57,12 @@ class Eval:
         print(f"recall@5: {rk5:.2f} ({rk5 * 100:.1f}%)")
         print(f"recall@10: {rk10:.2f} ({rk10 * 100:.1f}%)")
 
-    def krecall(self, src, q, k) -> int:
+    def krecall(self, src: list, q: AnsweredQuestion
+                | UnansweredQuestion, k: int) -> int:
         """Check whether at least one top-k retrieved source
           meets the file and overlap thresholds."""
+        if isinstance(q, UnansweredQuestion) or not q.sources:
+            return 0
         for i in range(k):
             if src[i].file_path == q.sources[0].file_path:
                 x, y = (src[i].first_character_index,
@@ -70,7 +74,7 @@ class Eval:
 
         return 0
 
-    def overlap(self, src: tuple, answer: tuple) -> float:
+    def overlap(self, src: tuple[int, int], answer: tuple[int, int]) -> float:
         """Compute the intersection-over-union ratio
           between two character index spans."""
         x, y = src

@@ -11,9 +11,9 @@ class HybridRetrieval:
     """Evaluate dataset questions using hybrid BM25 and
       ChromaDB retrieval fused with RRF."""
 
-    def __init__(self, dataset_path="data/datasets/UnansweredQuestions/"
+    def __init__(self, dataset_path: str = "data/datasets/UnansweredQuestions/"
                  "dataset_code_public.json",
-                 k=10, save_directory="data/output/"
+                 k: int = 10, save_directory: str = "data/output/"
                  "search_results/UnansweredQuestions") -> None:
         """Initialize paths, connect to ChromaDB,
           load chunk data, and load the BM25 index."""
@@ -41,6 +41,7 @@ class HybridRetrieval:
             check = RagDataset.model_validate_json(f.read())
         if check:
             return True
+        return False
 
     def retriever(self) -> None:
         """Retrieve chunks via BM25 and vector search,
@@ -91,11 +92,11 @@ class HybridRetrieval:
                 indent=2), encoding="UTF-8")
         print(f"Retrieve completed\nFile at: {savefile}")
 
-    def rrf(self, bm25, db) -> list:
+    def rrf(self, bm25: list, db: list) -> list:
         """Combine BM25 and vector search candidate lists
           using Reciprocal Rank Fusion."""
         k = 60
-        rrf_scores = {}
+        rrf_scores: dict = {}
         for rank, index in enumerate(bm25, start=1):
             id = self.chunks[index]["id"]
             rrf_scores[id] = rrf_scores.get(id, 0.0) + (1.0 / (k + rank))

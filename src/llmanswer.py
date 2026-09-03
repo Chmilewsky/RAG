@@ -84,10 +84,10 @@ class Answer:
     """Batch answer generator using Ollama for evaluation datasets."""
 
     def __init__(self,
-                 student_search_results_path=(
+                 student_search_results_path: str = (
                      "data/datasets/UnansweredQuestions/"
                      "dataset_docs_public.json"),
-                 k=5, save_directory="data/output/"
+                 k: int = 5, save_directory: str = "data/output/"
                  "search_results/UnansweredQuestions") -> None:
         """Initialize target model, dataset paths, and retrieval parameters."""
         self.model = 'qwen3:0.6b'
@@ -105,7 +105,6 @@ class Answer:
         with open(self.question, "r", encoding="UTF-8") as f:
             question_data = RagDataset.model_validate_json(f.read())
         llm_answer_list = []
-        output = []
         for q in question_data.rag_questions:
             total_q += 1
 
@@ -142,7 +141,7 @@ class Answer:
 
         output = StudentSearchResultsAndAnswer(
             search_results=llm_answer_list, k=10)
-        savefile = Path("testouput.json")
+        savefile = Path("llm_answer.json")
         savefile.write_text(
             output.model_dump_json(indent=2), encoding="UTF-8")
         print("finish")
@@ -151,7 +150,7 @@ class Answer:
 class SoloAnswer:
     """Single-query answer generator using Ollama."""
 
-    def __init__(self, query, k) -> None:
+    def __init__(self, query: str, k: int) -> None:
         """Initialize the query, top-k parameter, and target model."""
         self.model = 'qwen3:0.6b'
         self.question = query

@@ -30,9 +30,9 @@ class CLI:
         solo_retrieve()
 
     def search_dataset(
-        self, dataset_path="data/datasets/UnansweredQuestions/"
+        self, dataset_path: str = "data/datasets/UnansweredQuestions/"
         "dataset_code_public.json",
-            k=10, save_directory="data/output/"
+            k: int = 10, save_directory: str = "data/output/"
             "search_results/UnansweredQuestions") -> None:
         """Run batch BM25 retrieval over an evaluation dataset
           and save results."""
@@ -53,10 +53,10 @@ class CLI:
         solo_answer()
 
     def answer_dataset(self,
-                       student_search_results_path=(
+                       student_search_results_path: str = (
                            "data/datasets/UnansweredQuestions/"
                            "dataset_code_public.json"),
-                       k=5, save_directory="data/output/"
+                       k: int = 5, save_directory: str = "data/output/"
                        "search_results/UnansweredQuestions") -> None:
         """Generate LLM answers in batch for an evaluation dataset."""
         answer_data = Answer(
@@ -92,9 +92,9 @@ class CLI:
         semantic()
 
     def hybrid(
-        self, dataset_path="data/datasets/UnansweredQuestions/"
+        self, dataset_path: str = "data/datasets/UnansweredQuestions/"
         "dataset_code_public.json",
-            k=10, save_directory="data/output/"
+            k: int = 10, save_directory: str = "data/output/"
             "search_results/UnansweredQuestions") -> None:
         """Execute batch hybrid retrieval combining
           BM25 and ChromaDB via RRF."""

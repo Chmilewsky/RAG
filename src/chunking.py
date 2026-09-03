@@ -113,8 +113,7 @@ class FileChunker:
             chunks = self.brut_chunk(data)
             return chunks
         elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
-            chunks = self.magika_chonking(data)
-            return chunks
+            return self.magika_chonking(data)
         return None
 
     @lru_cache(maxsize=None)
@@ -187,9 +186,9 @@ class FileChunker:
             chunks = self.metadata_add(magika_pipeline, data)
             return chunks
         except Exception:
-            pass
+            return None
 
-    def check_chunk_size(self, chunk) -> Iterator[Chunk]:
+    def check_chunk_size(self, chunk: Chunk) -> Iterator[Chunk]:
         """Verify chunk size and apply fallback TokenChunker if oversized.
 
         Args:
@@ -207,7 +206,8 @@ class FileChunker:
         else:
             yield chunk
 
-    def metadata_add(self, chunked_file, data_path) -> list[dict[str, Any]]:
+    def metadata_add(self, chunked_file: Any,
+                     data_path: Path) -> list[dict[str, Any]]:
         """Enrich chunks with file metadata and convert to dictionary format.
 
         Args:
@@ -231,11 +231,11 @@ class FileChunker:
 class JsonWriter:
     """Appends processed chunk dictionaries to a JSONL output file."""
 
-    def __init__(self, output_path) -> None:
+    def __init__(self, output_path: Path) -> None:
         """Initialize writer with target output path."""
         self.output_path = output_path
 
-    def write(self, chunks):
+    def write(self, chunks: list) -> None:
         """Append a list of chunk dictionaries to the JSONL output file."""
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.output_path, "a", encoding="UTF-8") as f:
