@@ -10,7 +10,7 @@ class Indexing:
 
     def __init__(self) -> None:
         """Initialize an empty corpus list."""
-        self.corpus = []
+        self.corpus: list = []
 
     def __call__(self) -> Any:
         """Execute the index building pipeline."""

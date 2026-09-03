@@ -93,7 +93,7 @@ class FileChunker:
         )
         self.count = 0
 
-    def file_type_filter(self, data) -> list[dict[str, Any]] | None:
+    def file_type_filter(self, data: Path) -> list[dict[str, Any]] | None:
         """Filter file by extension and route to the corresponding chunker.
 
             Args:
@@ -115,9 +115,10 @@ class FileChunker:
         elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
             chunks = self.magika_chonking(data)
             return chunks
+        return None
 
     @lru_cache(maxsize=None)
-    def brut_chunk(self, data) -> list[dict[str, Any]]:
+    def brut_chunk(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Python file strictly
           by token count with overlap (No AST)."""
         data_path = str(data)
@@ -138,7 +139,7 @@ class FileChunker:
         return chunks
 
     @lru_cache(maxsize=None)
-    def md_chonking(self, data) -> list[dict[str, Any]]:
+    def md_chonking(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Markdown file using recursive chunking."""
         data_path = str(data)
         with open("src/custom_markdown.json", "r", encoding="utf-8") as f:
@@ -156,7 +157,7 @@ class FileChunker:
         return chunks
 
     @lru_cache(maxsize=None)
-    def py_chonking(self, data) -> list[dict[str, Any]]:
+    def py_chonking(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Python file using AST code chunking."""
         data_path = str(data)
         # print(data_path)
@@ -170,7 +171,7 @@ class FileChunker:
         return chunks
 
     @lru_cache(maxsize=None)
-    def magika_chonking(self, data) -> list[dict[str, Any]] | None:
+    def magika_chonking(self, data: Path) -> list[dict[str, Any]] | None:
         """Identify file language using Magika and apply code chunking."""
         data_path = str(data)
         res = self.m.identify_path(data_path)

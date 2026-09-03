@@ -1,4 +1,3 @@
-from typing import Any
 from tqdm import tqdm
 import json
 import chromadb
@@ -7,10 +6,12 @@ import shutil
 
 
 class SemanticEmbeddings:
-    """Manage local ChromaDB initialization and batch ingestion of text chunks."""
+    """Manage local ChromaDB initialization and
+      batch ingestion of text chunks."""
 
     def __init__(self) -> None:
-        """Reset the local vector storage directory and initialize a persistent collection."""
+        """Reset the local vector storage directory and
+          initialize a persistent collection."""
         self.database_path = Path("data/intern_output/vector_DataBase")
         if self.database_path.exists():
             shutil.rmtree(self.database_path)
@@ -18,11 +19,11 @@ class SemanticEmbeddings:
             path=self.database_path)
         self.collection = self.client.create_collection(name="my_collection")
 
-    def __call__(self,) -> None:
+    def __call__(self) -> None:
         """Execute the database ingestion pipeline."""
         self.FillingDb()
 
-    def FillingDb(self):
+    def FillingDb(self) -> None:
         """Read chunk data from JSONL and
           add documents with metadata to ChromaDB in batches."""
         ids = []

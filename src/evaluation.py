@@ -11,7 +11,8 @@ class Eval:
                  dataset_path: str =
                  "data/datasets/"
                  "AnsweredQuestions/dataset_code_public.json") -> None:
-        """Load student search results and ground-truth dataset from JSON files."""
+        """Load student search results and
+          ground-truth dataset from JSON files."""
 
         with open(student_search_results_path, "r", encoding="Utf-8") as f:
             self.student_data = StudentSearchResults.model_validate_json(
@@ -23,8 +24,9 @@ class Eval:
         """Execute the recall evaluation pipeline."""
         self.recall()
 
-    def recall(self):
-        """Compute and display Recall@1, Recall@3, Recall@5, and Recall@10 metrics."""
+    def recall(self) -> None:
+        """Compute and display Recall@1, Recall@3, Recall@5, and
+          Recall@10 metrics."""
         total_question = 0
         good_answer1 = 0
         good_answer3 = 0

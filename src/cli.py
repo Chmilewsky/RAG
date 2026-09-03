@@ -34,7 +34,8 @@ class CLI:
         "dataset_code_public.json",
             k=10, save_directory="data/output/"
             "search_results/UnansweredQuestions") -> None:
-        """Run batch BM25 retrieval over an evaluation dataset and save results."""
+        """Run batch BM25 retrieval over an evaluation dataset
+          and save results."""
         search_data = IndexRetriever(
             dataset_path=dataset_path,
             save_directory=save_directory,
@@ -43,7 +44,8 @@ class CLI:
 
     def answer(self, query: str = "What activation formats does the fused\
                 batched MoE layer return in vLLM?", k: int = 5) -> None:
-        """Retrieve context for a single query and generate an answer using the LLM."""
+        """Retrieve context for a single query and
+          generate an answer using the LLM."""
         solo_retrieve = SoloQuery(question=query, k=k)
         solo_retrieve()
 
@@ -67,8 +69,10 @@ class CLI:
                  ("data/output/search_results"
                   "/UnansweredQuestions/dataset_code_public.json"),
                  dataset_path: str =
-                 ("data/datasets/AnsweredQuestions/dataset_code_public.json")):
-        """Compute Recall@k metrics comparing retrieval results against ground truth."""
+                 ("data/datasets/AnsweredQuestions"
+                  "/dataset_code_public.json")) -> None:
+        """Compute Recall@k metrics
+          comparing retrieval results against ground truth."""
         eval = Eval(student_search_results_path=student_search_results_path,
                     dataset_path=dataset_path)
         eval()
@@ -91,7 +95,7 @@ class CLI:
         self, dataset_path="data/datasets/UnansweredQuestions/"
         "dataset_code_public.json",
             k=10, save_directory="data/output/"
-            "search_results/UnansweredQuestions"):
+            "search_results/UnansweredQuestions") -> None:
         """Execute batch hybrid retrieval combining
           BM25 and ChromaDB via RRF."""
         search_data = HybridRetrieval(

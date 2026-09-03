@@ -14,7 +14,7 @@ except Exception as e:
     sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Launch the Fire CLI interface and
       handle execution errors with traceback location details."""
     try:

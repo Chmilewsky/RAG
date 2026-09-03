@@ -35,13 +35,14 @@ class HybridRetrieval:
         self.retriever()
 
     def importcheck(self) -> bool | None:
-        """Validate the dataset file structure against the RagDataset schema."""
+        """Validate the dataset file structure
+          against the RagDataset schema."""
         with open(self.dataset, "r", encoding="UTF-8") as f:
             check = RagDataset.model_validate_json(f.read())
         if check:
             return True
 
-    def retriever(self):
+    def retriever(self) -> None:
         """Retrieve chunks via BM25 and vector search,
           fuse ranks using RRF, and save results to JSON."""
         search_results = []
@@ -90,7 +91,7 @@ class HybridRetrieval:
                 indent=2), encoding="UTF-8")
         print(f"Retrieve completed\nFile at: {savefile}")
 
-    def rrf(self, bm25, db):
+    def rrf(self, bm25, db) -> list:
         """Combine BM25 and vector search candidate lists
           using Reciprocal Rank Fusion."""
         k = 60

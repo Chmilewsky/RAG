@@ -11,7 +11,8 @@ from src.models import (MinimalAnswer,
 
 
 class MessagePrep:
-    """Format prompt messages with retrieved context for dataset question evaluation."""
+    """Format prompt messages with retrieved context
+      for dataset question evaluation."""
 
     def __init__(self) -> None:
         """Initialize the path to precomputed search results."""
@@ -20,7 +21,8 @@ class MessagePrep:
 
     def question_add(
             self, question_id: str) -> tuple[str, list[MinimalSource]]:
-        """Build a context-injected prompt and return candidate sources for a question."""
+        """Build a context-injected prompt and
+          return candidate sources for a question."""
         context_text = ""
         sources: list[MinimalSource] = []
         with open(self.retrieve, "r", encoding="UTF-8") as f:
@@ -95,8 +97,9 @@ class Answer:
         """Execute the batch question answering pipeline."""
         self.open_file()
 
-    def open_file(self):
-        """Iterate over dataset questions, query Ollama with context, and export answers to JSON."""
+    def open_file(self) -> None:
+        """Iterate over dataset questions, query Ollama with context,
+          and export answers to JSON."""
         total_q = 0
         content = MessagePrep()
         with open(self.question, "r", encoding="UTF-8") as f:
@@ -158,8 +161,9 @@ class SoloAnswer:
         """Execute the single-query answer pipeline."""
         self.answer()
 
-    def answer(self):
-        """Query Ollama with context retrieved for the single question and print the output."""
+    def answer(self) -> None:
+        """Query Ollama with context retrieved for the single question and
+          print the output."""
         content = SoloMessagePrep()
         msg = content.question_add(self.question)
         messages = [
