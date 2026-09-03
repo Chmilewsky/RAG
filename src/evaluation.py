@@ -3,12 +3,16 @@ from typing import Any
 
 
 class Eval:
+    """Evaluate retrieval performance against source references."""
+
     def __init__(self, student_search_results_path: str =
                  "data/output/search_results"
                  "/UnansweredQuestions/dataset_code_public.json",
                  dataset_path: str =
                  "data/datasets/"
                  "AnsweredQuestions/dataset_code_public.json") -> None:
+        """Load student search results and ground-truth dataset from JSON files."""
+
         with open(student_search_results_path, "r", encoding="Utf-8") as f:
             self.student_data = StudentSearchResults.model_validate_json(
                 f.read())
@@ -16,9 +20,11 @@ class Eval:
             self.answer = RagDataset.model_validate_json(g.read())
 
     def __call__(self) -> Any:
+        """Execute the recall evaluation pipeline."""
         self.recall()
 
     def recall(self):
+        """Compute and display Recall@1, Recall@3, Recall@5, and Recall@10 metrics."""
         total_question = 0
         good_answer1 = 0
         good_answer3 = 0
@@ -49,6 +55,8 @@ class Eval:
         print(f"recall@10: {rk10:.2f} ({rk10 * 100:.1f}%)")
 
     def krecall(self, src, q, k) -> int:
+        """Check whether at least one top-k retrieved source
+          meets the file and overlap thresholds."""
         for i in range(k):
             if src[i].file_path == q.sources[0].file_path:
                 x, y = (src[i].first_character_index,
@@ -61,6 +69,8 @@ class Eval:
         return 0
 
     def overlap(self, src: tuple, answer: tuple) -> float:
+        """Compute the intersection-over-union ratio
+          between two character index spans."""
         x, y = src
         a, b = answer
         intersection_start = max(x, a)

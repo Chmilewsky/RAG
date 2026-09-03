@@ -1,21 +1,24 @@
 from typing import Any
 from tqdm import tqdm
 import Stemmer
-
 import bm25s
 import json
 
-# ajouter stemmer et stopwords
-
 
 class Indexing:
+    """Build and persist a BM25 index from pre-extracted JSONL chunk data."""
+
     def __init__(self) -> None:
+        """Initialize an empty corpus list."""
         self.corpus = []
 
     def __call__(self) -> Any:
+        """Execute the index building pipeline."""
         self.build_index()
 
     def build_index(self) -> None:
+        """Load chunks, tokenize enriched corpus text,
+          compute the BM25 index, and save it to disk."""
         stemmer = Stemmer.Stemmer("english")
         count_chunk = 0
 
@@ -39,8 +42,3 @@ class Indexing:
         retriever.save(str("data/processed"))
         print(
             f"Ingestion complete! Indexed {count_chunk} under data/processed")
-
-
-class SemanticEmbeddings:
-    def __init__(self) -> None:
-        pass

@@ -11,12 +11,16 @@ from src.models import (MinimalAnswer,
 
 
 class MessagePrep:
+    """Format prompt messages with retrieved context for dataset question evaluation."""
+
     def __init__(self) -> None:
+        """Initialize the path to precomputed search results."""
         self.retrieve = Path("data/output/search_results/"
                              "UnansweredQuestions/dataset_code_public.json")
 
     def question_add(
             self, question_id: str) -> tuple[str, list[MinimalSource]]:
+        """Build a context-injected prompt and return candidate sources for a question."""
         context_text = ""
         sources: list[MinimalSource] = []
         with open(self.retrieve, "r", encoding="UTF-8") as f:
@@ -41,11 +45,17 @@ class MessagePrep:
 
 
 class SoloMessagePrep:
+    """Format prompt messages with retrieved context for a single query."""
+
     def __init__(self) -> None:
+        """Initialize the path to solo search results."""
         self.retrieve = Path("data/output/search_results/"
                              "UnansweredQuestions/solo_answer.json")
+
     def question_add(
             self, question: str) -> tuple[str, list[MinimalSource]]:
+        """Build a context-injected prompt and
+          return candidate sources for a single question."""
         context_text = ""
         sources: list[MinimalSource] = []
         with open(self.retrieve, "r", encoding="UTF-8") as f:
@@ -69,19 +79,24 @@ class SoloMessagePrep:
 
 
 class Answer:
+    """Batch answer generator using Ollama for evaluation datasets."""
+
     def __init__(self,
                  student_search_results_path=(
                      "data/datasets/UnansweredQuestions/"
                      "dataset_docs_public.json"),
                  k=5, save_directory="data/output/"
                  "search_results/UnansweredQuestions") -> None:
+        """Initialize target model, dataset paths, and retrieval parameters."""
         self.model = 'qwen3:0.6b'
         self.question = Path(student_search_results_path)
 
     def __call__(self) -> Any:
+        """Execute the batch question answering pipeline."""
         self.open_file()
 
     def open_file(self):
+        """Iterate over dataset questions, query Ollama with context, and export answers to JSON."""
         total_q = 0
         content = MessagePrep()
         with open(self.question, "r", encoding="UTF-8") as f:
@@ -131,15 +146,20 @@ class Answer:
 
 
 class SoloAnswer:
+    """Single-query answer generator using Ollama."""
+
     def __init__(self, query, k) -> None:
+        """Initialize the query, top-k parameter, and target model."""
         self.model = 'qwen3:0.6b'
         self.question = query
         self.k = k
 
     def __call__(self) -> Any:
+        """Execute the single-query answer pipeline."""
         self.answer()
 
     def answer(self):
+        """Query Ollama with context retrieved for the single question and print the output."""
         content = SoloMessagePrep()
         msg = content.question_add(self.question)
         messages = [

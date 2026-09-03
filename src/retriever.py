@@ -7,29 +7,39 @@ import Stemmer
 
 
 class IndexRetriever:
+    """BM25 retriever for evaluating dataset
+        questions against indexed chunks."""
+
     def __init__(self, dataset_path="data/datasets/UnansweredQuestions/"
                  "dataset_code_public.json",
                  k=10, save_directory="data/output/"
                  "search_results/UnansweredQuestions") -> None:
+        """Initialize paths, load chunk data,
+          and load the pre-built BM25 index."""
+
         self.dataset = Path(dataset_path)
         self.k = k
         self.save_path = Path(save_directory)
         with open("data/intern_output/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:
             self.chunks = [json.loads(line) for line in f]
-
         self.import_retriever = bm25s.BM25.load("./data/processed")
 
     def __call__(self) -> None:
+        """Run the batch retrieval pipeline."""
         self.retriever()
 
     def importcheck(self) -> bool | None:
+        """Validate the dataset file structure
+          against the RagDataset schema."""
         with open(self.dataset, "r", encoding="UTF-8") as f:
             check = RagDataset.model_validate_json(f.read())
         if check:
             return True
 
     def retriever(self):
+        """Retrieve top-k chunks for each question
+          in the dataset and save results to JSON."""
         search_results = []
         stemmer = Stemmer.Stemmer("english")
 
@@ -75,8 +85,11 @@ class IndexRetriever:
 
 
 class SoloQuery:
+    """Single-query BM25 retriever"""
+
     def __init__(
             self, question="what is the answer to all question", k=5) -> None:
+        """Initialize query parameters, load chunks, and load the BM25 index."""
         self.save_path = Path("data/output/search_results/UnansweredQuestions")
         self.question = question
         self.k = k
@@ -86,9 +99,11 @@ class SoloQuery:
         self.import_retriever = bm25s.BM25.load("./data/processed")
 
     def __call__(self) -> None:
+        """Run the single-query retrieval pipeline."""
         self.retriever()
 
     def retriever(self):
+        """Retrieve top-k chunks for the query, print matches, and save results to JSON."""
         stemmer = Stemmer.Stemmer("english")
         query_tokens = bm25s.tokenize(self.question, stemmer=stemmer)
         results, scores = self.import_retriever.retrieve(

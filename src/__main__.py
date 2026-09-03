@@ -15,6 +15,8 @@ except Exception as e:
 
 
 def main():
+    """Launch the Fire CLI interface and
+      handle execution errors with traceback location details."""
     try:
         fire.Fire(CLI)
     except Exception as e:

@@ -2,18 +2,29 @@ from typing import Any
 from tqdm import tqdm
 import json
 import chromadb
+from pathlib import Path
+import shutil
 
 
 class SemanticEmbeddings:
+    """Manage local ChromaDB initialization and batch ingestion of text chunks."""
+
     def __init__(self) -> None:
+        """Reset the local vector storage directory and initialize a persistent collection."""
+        self.database_path = Path("data/intern_output/vector_DataBase")
+        if self.database_path.exists():
+            shutil.rmtree(self.database_path)
         self.client = chromadb.PersistentClient(
-            path="data/intern_output/vector_DataBase")
+            path=self.database_path)
         self.collection = self.client.create_collection(name="my_collection")
 
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
+    def __call__(self,) -> None:
+        """Execute the database ingestion pipeline."""
         self.FillingDb()
 
     def FillingDb(self):
+        """Read chunk data from JSONL and
+          add documents with metadata to ChromaDB in batches."""
         ids = []
         documents = []
         metadatas = []

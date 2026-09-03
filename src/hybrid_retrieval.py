@@ -8,10 +8,16 @@ import chromadb
 
 
 class HybridRetrieval:
+    """Evaluate dataset questions using hybrid BM25 and
+      ChromaDB retrieval fused with RRF."""
+
     def __init__(self, dataset_path="data/datasets/UnansweredQuestions/"
                  "dataset_code_public.json",
                  k=10, save_directory="data/output/"
                  "search_results/UnansweredQuestions") -> None:
+        """Initialize paths, connect to ChromaDB,
+          load chunk data, and load the BM25 index."""
+
         self.dataset = Path(dataset_path)
         self.k = k
         self.save_path = Path(save_directory)
@@ -22,19 +28,22 @@ class HybridRetrieval:
                   "r", encoding="utf-8") as f:
             self.chunks = [json.loads(line) for line in f]
         self.chunks_by_id = {chunk["id"]: chunk for chunk in self.chunks}
-
         self.import_retriever = bm25s.BM25.load("./data/processed")
 
     def __call__(self) -> None:
+        """Run the hybrid retrieval pipeline."""
         self.retriever()
 
     def importcheck(self) -> bool | None:
+        """Validate the dataset file structure against the RagDataset schema."""
         with open(self.dataset, "r", encoding="UTF-8") as f:
             check = RagDataset.model_validate_json(f.read())
         if check:
             return True
 
     def retriever(self):
+        """Retrieve chunks via BM25 and vector search,
+          fuse ranks using RRF, and save results to JSON."""
         search_results = []
         stemmer = Stemmer.Stemmer("english")
 
@@ -82,6 +91,8 @@ class HybridRetrieval:
         print(f"Retrieve completed\nFile at: {savefile}")
 
     def rrf(self, bm25, db):
+        """Combine BM25 and vector search candidate lists
+          using Reciprocal Rank Fusion."""
         k = 60
         rrf_scores = {}
         for rank, index in enumerate(bm25, start=1):

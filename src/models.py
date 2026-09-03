@@ -3,7 +3,7 @@ import uuid
 
 
 class MinimalSource(BaseModel):
-
+    """pydantic check for answer format"""
     file_path: str
     first_character_index: int
     last_character_index: int
@@ -11,49 +11,41 @@ class MinimalSource(BaseModel):
 
 
 class UnansweredQuestion(BaseModel):
-
+    """pydantic check for question format"""
     question_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     question: str
 
 
 class AnsweredQuestion(UnansweredQuestion):
-
+    """pydantic check for answer format"""
     sources: list[MinimalSource]
     answer: str
 
 
 class RagDataset(BaseModel):
+    """pydantic check for question file"""
     rag_questions: list[AnsweredQuestion | UnansweredQuestion]
 
 
 class MinimalSearchResults(BaseModel):
+    """pydantic check for answer format"""
     question_id: str
     question: str
     retrieved_sources: list[MinimalSource]
 
 
 class MinimalAnswer(MinimalSearchResults):
+    """pydantic check for llm answer format"""
     answer: str
 
 
 class StudentSearchResults(BaseModel):
+    """pydantic check for llm answer format"""
     search_results: list[MinimalSearchResults]
     k: int
 
 
 class StudentSearchResultsAndAnswer(BaseModel):
+    """pydantic check for llm answer format"""
     search_results: list[MinimalAnswer]
     k: int
-
-# Use only with langchain
-# class ChunkMetadata(BaseModel):
-#     filename: str
-#     file_path: str
-
-
-# class ChunkModel(BaseModel):
-#     text: str
-#     start_index: int
-#     end_index: int
-#     token_count: int
-#     metadata: ChunkMetadata

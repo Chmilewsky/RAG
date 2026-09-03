@@ -226,25 +226,6 @@ class FileChunker:
                     chunk_list.append(dict_chunk)
         return chunk_list
 
-    def semantic_chonking(self, data) -> list[dict[str, Any]]:
-        data_path = str(data)
-
-        semantic_pipeline = (
-            Pipeline()
-            .fetch_from("file", path=data_path)
-            .chunk_with(
-                "semantic",
-                embedding_model="minishlab/potion-base-32M",
-                threshold=0.7,
-                similarity_window=3,
-                skip_window=0,
-                chunk_size=self.chunk_size,
-            )
-            .run()
-        )
-        chunks = self.metadata_add(semantic_pipeline, data)
-        return chunks
-
 
 class JsonWriter:
     """Appends processed chunk dictionaries to a JSONL output file."""
