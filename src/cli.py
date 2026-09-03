@@ -58,8 +58,8 @@ class CLI:
 
     def answer_dataset(self,
                        student_search_results_path: str = (
-                           "data/datasets/UnansweredQuestions/"
-                           "dataset_code_public.json"),
+                           "data/output/search_results/"
+                           "UnansweredQuestions/dataset_code_public.json"),
                        k: int = 5, save_directory: str = "data/output/"
                        "search_results/UnansweredQuestions") -> None:
         """Generate LLM answers in batch for an evaluation dataset."""

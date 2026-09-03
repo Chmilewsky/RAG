@@ -6,7 +6,6 @@ from src.models import (MinimalAnswer,
                         MinimalSource,
                         StudentSearchResults,
                         StudentSearchResultsAndAnswer,
-                        RagDataset
                         )
 
 
@@ -14,10 +13,9 @@ class MessagePrep:
     """Format prompt messages with retrieved context
       for dataset question evaluation."""
 
-    def __init__(self) -> None:
+    def __init__(self, path: Path) -> None:
         """Initialize the path to precomputed search results."""
-        self.retrieve = Path("data/output/search_results/"
-                             "UnansweredQuestions/dataset_code_public.json")
+        self.retrieve = path
 
     def question_add(
             self, question_id: str) -> tuple[str, list[MinimalSource]]:
@@ -55,11 +53,10 @@ class SoloMessagePrep:
                              "UnansweredQuestions/solo_answer.json")
 
     def question_add(
-            self, question: str) -> tuple[str, list[MinimalSource]]:
+            self, question: str) -> str:
         """Build a context-injected prompt and
           return candidate sources for a single question."""
         context_text = ""
-        sources: list[MinimalSource] = []
         with open(self.retrieve, "r", encoding="UTF-8") as f:
             retrieve_data = StudentSearchResults.model_validate_json(f.read())
         msg = retrieve_data.search_results[0]
@@ -70,14 +67,12 @@ class SoloMessagePrep:
         message = (
             f"Context information is below.\n"
             f"---------------------\n"
-            f"{context_text}\n"
+            f"{context_text[:12000]}\n"
             f"---------------------\n"
             f"Given the context information and no prior knowledge, "
             f"answer the question: {question_text}"
         )
-
-        message = message[:12000]
-        return message, sources
+        return message
 
 
 class Answer:
@@ -85,30 +80,31 @@ class Answer:
 
     def __init__(self,
                  student_search_results_path: str = (
-                     "data/datasets/UnansweredQuestions/"
-                     "dataset_docs_public.json"),
+                     "data/output/search_results/"
+                     "UnansweredQuestions/dataset_code_public.json"),
                  k: int = 5, save_directory: str = "data/output/"
                  "search_results/UnansweredQuestions") -> None:
         """Initialize target model, dataset paths, and retrieval parameters."""
         self.model = 'qwen3:0.6b'
         self.question = Path(student_search_results_path)
+        self.save_path = save_directory
 
     def __call__(self) -> Any:
         """Execute the batch question answering pipeline."""
-        self.open_file()
+        self.process_answers()
 
-    def open_file(self) -> None:
+    def process_answers(self) -> None:
         """Iterate over dataset questions, query Ollama with context,
           and export answers to JSON."""
         total_q = 0
-        content = MessagePrep()
+        content = MessagePrep(self.question)
         with open(self.question, "r", encoding="UTF-8") as f:
-            question_data = RagDataset.model_validate_json(f.read())
+            question_data = StudentSearchResults.model_validate_json(f.read())
         llm_answer_list = []
-        for q in question_data.rag_questions:
+        for q in question_data.search_results:
             total_q += 1
 
-        for q in tqdm(question_data.rag_questions,
+        for q in tqdm(question_data.search_results,
                       desc="Answer", total=total_q):
             results = []
             msg, source = content.question_add(q.question_id)
@@ -141,10 +137,11 @@ class Answer:
 
             output = StudentSearchResultsAndAnswer(
                 search_results=llm_answer_list, k=10)
-            savefile = Path("llm_answer.json")
+            savefile = Path(f"{self.save_path}/llm_answer.json")
+            savefile.parent.mkdir(parents=True, exist_ok=True)
             savefile.write_text(
                 output.model_dump_json(indent=2), encoding="UTF-8")
-            print("finish")
+        print("finish")
 
 
 class SoloAnswer:
