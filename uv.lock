@@ -392,10 +392,6 @@ wheels = [
 code = [
     { name = "tree-sitter-language-pack" },
 ]
-hub = [
-    { name = "huggingface-hub" },
-    { name = "jsonschema" },
-]
 
 [[package]]
 name = "chonkie-core"
@@ -2148,12 +2144,13 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "bm25s", extra = ["core"] },
-    { name = "chonkie", extra = ["code", "hub"] },
+    { name = "chonkie", extra = ["code"] },
     { name = "chromadb" },
     { name = "fire" },
     { name = "langchain-text-splitters" },
     { name = "magika" },
     { name = "ollama" },
+    { name = "pydantic" },
     { name = "torch" },
     { name = "tqdm" },
 ]
@@ -2161,12 +2158,13 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "bm25s", extras = ["core"], specifier = ">=0.3.10" },
-    { name = "chonkie", extras = ["code", "hub"], specifier = ">=1.7.0" },
+    { name = "chonkie", extras = ["code"], specifier = ">=1.7.0" },
     { name = "chromadb", specifier = ">=1.5.9" },
     { name = "fire", specifier = ">=0.7.1" },
     { name = "langchain-text-splitters", specifier = ">=1.1.2" },
     { name = "magika", specifier = ">=1.0.3" },
     { name = "ollama", specifier = ">=0.6.2" },
+    { name = "pydantic", specifier = ">=2.13.4" },
     { name = "torch", specifier = ">=2.13.0" },
     { name = "tqdm", specifier = ">=4.70.0" },
 ]

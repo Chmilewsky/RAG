@@ -6,6 +6,7 @@ from src.evaluation import Eval
 from src.chromadb import SemanticEmbeddings
 from src.hybrid_retrieval import HybridRetrieval
 from chromadb.errors import NotFoundError, ChromaError
+import ollama
 import pydantic
 import sys
 
@@ -99,10 +100,10 @@ class CLI:
         except FileNotFoundError as e:
             print(f"File or directory not found: {e}", file=sys.stderr)
             sys.exit(1)
-        except ConnectionError as e:
+        except (ConnectionError, ollama.ResponseError) as e:
             print(
-                f"Could not connect to Ollama: {e}."
-                "Please ensure Ollama is running.",
+                f"Ollama error: {e}. Please ensure Ollama"
+                "is running and 'qwen3:0.6b' is pulled.",
                 file=sys.stderr)
             sys.exit(1)
 
@@ -132,10 +133,10 @@ class CLI:
         except (FileNotFoundError, ValueError, pydantic.ValidationError) as e:
             print(f"Invalid or missing data file: {e}", file=sys.stderr)
             sys.exit(1)
-        except ConnectionError as e:
+        except (ConnectionError, ollama.ResponseError) as e:
             print(
-                f"Could not connect to Ollama: {e}. "
-                "Please ensure Ollama is running.",
+                f"Ollama error: {e}. Please ensure Ollama"
+                "is running and 'qwen3:0.6b' is pulled.",
                 file=sys.stderr)
             sys.exit(1)
 

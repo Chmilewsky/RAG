@@ -47,6 +47,9 @@ class Eval:
                         student.retrieved_sources, q, 5)
                     good_answer10 += self.krecall(
                         student.retrieved_sources, q, 10)
+        if total_question == 0:
+            print("No questions found to evaluate in dataset.")
+            return
 
         rk1 = good_answer1 / total_question
         rk3 = good_answer3 / total_question

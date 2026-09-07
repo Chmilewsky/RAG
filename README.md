@@ -42,6 +42,15 @@ The project includes a `Makefile` with targets to manage the complete lifecycle 
 * [TQDM Progress Bar Guide (GeeksforGeeks)](https://www.geeksforgeeks.org/python/python-how-to-make-a-terminal-progress-bar-using-tqdm/) — Progress bar utilities for batch operations.
 * https://docs.trychroma.com/docs/overview/getting-started
 
+### AI Usage Description
+In accordance with 42 guidelines, artificial intelligence tools were consulted during the development of this project:
+* **Library Comparison**: Evaluated different third-party libraries and tools to assess their features, performance, and relevance to the project requirements.
+* **Chunking Methodologies**: Deepened the conceptual understanding of various document splitting strategies (recursive markdown, AST code chunking, and token-based fallback).
+* **Lexical Search (BM25s)**: Clarified the internal mechanics, scoring principles, and parameter behavior of the BM25s retrieval algorithm.
+* **Database & Index Management**: Assisted in designing the data storage pipeline, metadata tracking, and structured persistence of chunked data.
+* **Hybrid Retrieval Fusion**: Guided the conceptualization and logic behind combining lexical BM25 results with semantic search into a unified ranking.
+* **Code Ownership & Validation**: All suggested ideas, structures, and implementations were manually tested, adapted, and fully understood before integration into the codebase.
+
 ---
 
 # Additional
@@ -153,6 +162,7 @@ To run the entire pipeline from environment setup to final response generation:
 ```bash
 # 1. Install dependencies
 make install
+
 
 # 2. Chunk source documents and build the BM25 index
 make index

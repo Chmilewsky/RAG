@@ -10,15 +10,23 @@
 		"levels": [
 			{
 				"delimiters": [
-					"######",
-					"#####",
-					"####",
-					"###",
-					"##",
-					"#"
+					"###### ",
+					"##### ",
+					"#### ",
+					"### ",
+					"## ",
+					"# "
 				],
 				"whitespace": false,
 				"include_delim": "next"
+			},
+			{
+				"delimiters": [
+					"\n```\n",
+					"\n```"
+				],
+				"whitespace": false,
+				"include_delim": "prev"
 			},
 			{
 				"delimiters": [
@@ -27,6 +35,15 @@
 				],
 				"whitespace": false,
 				"include_delim": "prev"
+			},
+			{
+				"delimiters": [
+					"\n- ",
+					"\n* ",
+					"\n1. "
+				],
+				"whitespace": false,
+				"include_delim": "next"
 			},
 			{
 				"delimiters": [
