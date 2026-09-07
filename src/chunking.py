@@ -89,7 +89,6 @@ class FileChunker:
             chunk_size=chunk_size,
             chunk_overlap=chunk_size // 5
         )
-        self.count = 0
 
     def file_type_filter(self, data: Path) -> list[dict[str, Any]] | None:
         """Filter file by extension and route to the corresponding chunker.
@@ -156,7 +155,6 @@ class FileChunker:
     def py_chonking(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Python file using AST code chunking."""
         data_path = str(data)
-        # print(data_path)
         py_pipeline = (
             Pipeline().fetch_from(
                 "file", path=data_path)
@@ -245,8 +243,3 @@ class JsonWriter:
         with open(self.output_path, "a", encoding="UTF-8") as f:
             for chunk in chunks:
                 f.write(json.dumps(chunk, ensure_ascii=False) + "\n")
-
-
-if __name__ == "__main__":
-    pipeline = ChunkingPipeline()
-    pipeline.run()

@@ -52,8 +52,7 @@ class SoloMessagePrep:
             retrieve_data = StudentSearchResults.model_validate_json(f.read())
         msg = retrieve_data.search_results[0]
         question_text = msg.question
-        q = retrieve_data.search_results[0]
-        for r in q.retrieved_sources[:k]:
+        for r in msg.retrieved_sources[:k]:
             context_text += f"{r.chunk_txt} \n"
         message = (
             f"Context information is below.\n"
@@ -94,7 +93,6 @@ class Answer:
 
         for q in tqdm(question_data.search_results,
                       desc="Answer", total=len(question_data.search_results)):
-            results = []
             msg, source = content.question_add(q.question, q.retrieved_sources)
             messages = [
                 {
@@ -119,8 +117,6 @@ class Answer:
                 retrieved_sources=source,
                 answer=response.message.content or "")
 
-            # print(f"---{response.message.content}---")
-            results.append(response.message.content)
             llm_answer_list.append(llm_answer)
 
             output = StudentSearchResultsAndAnswer(

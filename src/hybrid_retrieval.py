@@ -35,15 +35,6 @@ class HybridRetrieval:
         """Run the hybrid retrieval pipeline."""
         self.retriever()
 
-    def importcheck(self) -> bool | None:
-        """Validate the dataset file structure
-          against the RagDataset schema."""
-        with open(self.dataset, "r", encoding="UTF-8") as f:
-            check = RagDataset.model_validate_json(f.read())
-        if check:
-            return True
-        return False
-
     def retriever(self) -> None:
         """Retrieve chunks via BM25 and vector search,
           fuse ranks using RRF, and save results to JSON."""

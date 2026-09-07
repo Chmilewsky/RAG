@@ -30,15 +30,6 @@ class IndexRetriever:
         """Run the batch retrieval pipeline."""
         self.retriever()
 
-    def importcheck(self) -> bool | None:
-        """Validate the dataset file structure
-          against the RagDataset schema."""
-        with open(self.dataset, "r", encoding="UTF-8") as f:
-            check = RagDataset.model_validate_json(f.read())
-        if check:
-            return True
-        return False
-
     def retriever(self) -> None:
         """Retrieve top-k chunks for each question
           in the dataset and save results to JSON."""
@@ -154,5 +145,3 @@ class SoloQuery:
         savefile.write_text(
             final_output.model_dump_json(
                 indent=2), encoding="UTF-8")
-        # print("\n---Retrieve completed---")
-        # print(f"File at: {savefile}")
