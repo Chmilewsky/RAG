@@ -21,7 +21,7 @@ class IndexRetriever:
         self.dataset = Path(dataset_path)
         self.k = k
         self.save_path = Path(save_directory)
-        with open("data/intern_output/chunk_data.jsonl",
+        with open("data/processed/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:
             self.chunks = [json.loads(line) for line in f]
         self.import_retriever = bm25s.BM25.load("./data/processed")
@@ -98,7 +98,7 @@ class SoloQuery:
         self.save_path = Path("data/output/search_results/UnansweredQuestions")
         self.question = question
         self.k = k
-        with open("data/intern_output/chunk_data.jsonl",
+        with open("data/processed/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:
             self.chunks = [json.loads(line) for line in f]
         self.import_retriever = bm25s.BM25.load("./data/processed")

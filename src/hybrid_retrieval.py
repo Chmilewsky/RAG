@@ -25,7 +25,7 @@ class HybridRetrieval:
         client = chromadb.PersistentClient(
             path="data/intern_output/vector_DataBase")
         self.collection = client.get_collection(name="my_collection")
-        with open("data/intern_output/chunk_data.jsonl",
+        with open("data/processed/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:
             self.chunks = [json.loads(line) for line in f]
         self.chunks_by_id = {chunk["id"]: chunk for chunk in self.chunks}

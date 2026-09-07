@@ -30,7 +30,7 @@ class SemanticEmbeddings:
         documents = []
         metadatas = []
 
-        with open("./data/intern_output/chunk_data.jsonl",
+        with open("data/processed/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:
             lines = f.readlines()
             for line in tqdm(lines, desc="tokenizing"):

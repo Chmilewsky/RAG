@@ -14,7 +14,7 @@ class CLI:
       retrieval, generation, and evaluation commands."""
 
     def index(self, max_chunk_size: int = 2000,
-              dataset_path: str = "./data/raw/vllm-0.10.1") -> None:
+              dataset_path: str = "data/raw") -> None:
         """Run the chunking pipeline on raw files and build the BM25 index."""
         if not 200 <= max_chunk_size <= 2000:
             print("Max chunk size must be between 200 and 2000")
@@ -104,7 +104,7 @@ class CLI:
         eval()
 
     def semantic(self, max_chunk_size: int = 2000,
-                 dataset_path: str = "./data/raw/vllm-0.10.1") -> None:
+                 dataset_path: str = "data/raw") -> None:
         """Chunk raw documents, build the BM25 index,
           and populate ChromaDB embeddings."""
         chunker = ChunkingPipeline(

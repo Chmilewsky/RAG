@@ -11,14 +11,14 @@ class ChunkingPipeline:
     """Orchestrates scanning, chunking, and writing."""
 
     def __init__(self, chunk_size: int = 2000,
-                 dataset_path: str = "./data/raw/vllm-0.10.1") -> None:
+                 dataset_path: str = "data/raw") -> None:
         """Initialize the chunking pipeline components.
 
         Args:
             chunk_size: Target maximum size per chunk.
             dataset_path: Path to the dataset folder or file.
         """
-        self.output_path: Path = Path("./data/intern_output/chunk_data.jsonl")
+        self.output_path: Path = Path("data/processed/chunk_data.jsonl")
         self.dataset_path = Path(dataset_path)
         if self.output_path.exists():
             self.output_path.unlink()
@@ -145,7 +145,6 @@ class FileChunker:
                 "file", path=data_path)
             .process_with("text")
             .chunk_with("recursive", chunk_size=self.chunk_size,
-                        min_characters_per_chunk=1200,
                         tokenizer="character", rules=custom_rules).run())
 
         chunks = self.metadata_add(md_pipeline, data)
@@ -218,7 +217,13 @@ class FileChunker:
         for chunk in chunked_file.chunks:
             if chunk:
                 for sub_chunk in self.check_chunk_size(chunk):
-                    sub_chunk.metadata["file_path"] = str(data_path)
+                    try:
+                        rel_path = (
+                            data_path.resolve().relative_to(
+                                Path.cwd().resolve()).as_posix())
+                    except ValueError:
+                        rel_path = data_path.as_posix()
+                    sub_chunk.metadata["file_path"] = str(rel_path)
                     sub_chunk.metadata["filename"] = data_path.name
                     dict_chunk = sub_chunk.to_dict()
                     chunk_list.append(dict_chunk)
