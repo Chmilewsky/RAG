@@ -31,13 +31,14 @@ class Indexing:
                 filename = data['metadata']['filename']
                 filepath = data['metadata']['file_path']
                 text_expanded = text.replace("_", " ")
-                corpus_str = f"{text} {text_expanded} {filename} {filepath}"
+                corpus_str = (f"{filename} {filename}"
+                              f" {filepath} {text} {text_expanded}")
                 self.corpus.append(corpus_str)
                 count_chunk += 1
 
         corpus_tokens = bm25s.tokenize(
             self.corpus, stemmer=stemmer, stopwords="en")
-        retriever = bm25s.BM25(k1=0.4, b=0.4)
+        retriever = bm25s.BM25(k1=1.4, b=0.75)
         retriever.index(corpus_tokens)
         retriever.save(str("data/processed"))
         print(

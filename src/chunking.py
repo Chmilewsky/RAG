@@ -147,6 +147,7 @@ class FileChunker:
                 "file", path=data_path)
             .process_with("text")
             .chunk_with("recursive", chunk_size=self.chunk_size,
+                        min_characters_per_chunk=310,
                         tokenizer="character", rules=custom_rules).run())
 
         chunks = self.metadata_add(md_pipeline, data)

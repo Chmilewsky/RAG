@@ -27,7 +27,7 @@ class MessagePrep:
         message = (
             f"Context information is below.\n"
             f"---------------------\n"
-            f"{context_text[:12000]}\n"
+            f"{context_text[:6000]}\n"
             f"---------------------\n"
             f"Given the context information and no prior knowledge, "
             f"answer the question: {question}"
@@ -58,7 +58,7 @@ class SoloMessagePrep:
         message = (
             f"Context information is below.\n"
             f"---------------------\n"
-            f"{context_text[:12000]}\n"
+            f"{context_text[:6000]}\n"
             f"---------------------\n"
             f"Given the context information and no prior knowledge, "
             f"answer the question: {question_text}"
