@@ -33,7 +33,7 @@ class CLI:
             indexing = Indexing()
             indexing.build_index()
         except FileNotFoundError as e:
-            print(f"File or directory not found: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def search(self, query: str = ("What activation formats does the fused "
@@ -50,7 +50,7 @@ class CLI:
             solo_retrieve = SoloQuery(question=query, k=k)
             solo_retrieve()
         except FileNotFoundError as e:
-            print(f"File or directory not found: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def search_dataset(
@@ -77,7 +77,7 @@ class CLI:
                 k=k)
             search_data()
         except (FileNotFoundError, ValueError, pydantic.ValidationError) as e:
-            print(f"Invalid or missing data file: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def answer(self, query: str = ("What activation formats does the fused "
@@ -98,13 +98,10 @@ class CLI:
             solo_answer = SoloAnswer(query=query, k=k)
             solo_answer()
         except FileNotFoundError as e:
-            print(f"File or directory not found: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
         except (ConnectionError, ollama.ResponseError) as e:
-            print(
-                f"Ollama error: {e}. Please ensure Ollama"
-                "is running and 'qwen3:0.6b' is pulled.",
-                file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def answer_dataset(self,
@@ -131,13 +128,10 @@ class CLI:
                 save_directory=save_directory)
             answer_data()
         except (FileNotFoundError, ValueError, pydantic.ValidationError) as e:
-            print(f"Invalid or missing data file: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
         except (ConnectionError, ollama.ResponseError) as e:
-            print(
-                f"Ollama error: {e}. Please ensure Ollama"
-                "is running and 'qwen3:0.6b' is pulled.",
-                file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def evaluate(self,
@@ -163,7 +157,7 @@ class CLI:
                 dataset_path=dataset_path)
             eval()
         except (FileNotFoundError, ValueError, pydantic.ValidationError) as e:
-            print(f"Invalid or missing data file: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def semantic(self, max_chunk_size: int = 2000,
@@ -188,7 +182,7 @@ class CLI:
             semantic = SemanticEmbeddings()
             semantic()
         except FileNotFoundError as e:
-            print(f"File or directory not found: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def hybrid(
@@ -216,12 +210,12 @@ class CLI:
             search_data()
         except (NotFoundError, ChromaError) as e:
             print(
-                f"Vector database error: {e}.\n"
+                f"Error: {e}.\n"
                 "Please run 'uv run python -m src semantic'"
                 " first to initialize the database.",
                 file=sys.stderr
             )
             sys.exit(1)
         except FileNotFoundError as e:
-            print(f"File or directory not found: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
