@@ -137,7 +137,9 @@ class FileChunker:
     def md_chonking(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Markdown file using recursive chunking."""
         data_path = str(data)
-        with open("src/custom_markdown.json", "r", encoding="utf-8") as f:
+        config_path = Path(__file__).parent / "custom_markdown.json"
+
+        with open(config_path, "r", encoding="utf-8") as f:
             rules_dict = json.load(f)
         custom_rules = RecursiveRules.from_dict(rules_dict)
         md_pipeline = (

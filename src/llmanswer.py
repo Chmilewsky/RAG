@@ -125,7 +125,7 @@ class Answer:
 
             output = StudentSearchResultsAndAnswer(
                 search_results=llm_answer_list, k=question_data.k)
-            savefile = Path(f"{self.save_path}/llm_answer.json")
+            savefile = Path(f"{self.save_path}/{self.question.name}")
             savefile.parent.mkdir(parents=True, exist_ok=True)
             savefile.write_text(
                 output.model_dump_json(indent=2), encoding="UTF-8")

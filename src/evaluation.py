@@ -30,10 +30,10 @@ class Eval:
         """Compute and display Recall@1, Recall@3, Recall@5, and
           Recall@10 metrics."""
         total_question = 0
-        good_answer1 = 0
-        good_answer3 = 0
-        good_answer5 = 0
-        good_answer10 = 0
+        good_answer1: float = 0.0
+        good_answer3: float = 0.0
+        good_answer5: float = 0.0
+        good_answer10: float = 0.0
 
         for q in self.answer.rag_questions:
             total_question += 1
@@ -59,12 +59,12 @@ class Eval:
         print(f"recall@10: {rk10:.2f} ({rk10 * 100:.1f}%)")
 
     def krecall(self, src: list[MinimalSource], q: AnsweredQuestion
-                | UnansweredQuestion, k: int) -> int:
+                | UnansweredQuestion, k: int) -> float:
         """Check whether at least one top-k retrieved source
           meets the file and overlap thresholds."""
         sources = getattr(q, "sources", None)
         if not sources:
-            return 0
+            return 0.0
         limit = min(k, len(src))
 
         for i in range(limit):

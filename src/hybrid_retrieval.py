@@ -23,7 +23,7 @@ class HybridRetrieval:
         self.k = k
         self.save_path = Path(save_directory)
         client = chromadb.PersistentClient(
-            path="data/intern_output/vector_DataBase")
+            path="data/processed/vector_DataBase")
         self.collection = client.get_collection(name="my_collection")
         with open("data/processed/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:

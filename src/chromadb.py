@@ -12,7 +12,7 @@ class SemanticEmbeddings:
     def __init__(self) -> None:
         """Reset the local vector storage directory and
           initialize a persistent collection."""
-        self.database_path = Path("data/intern_output/vector_DataBase")
+        self.database_path = Path("data/processed/vector_DataBase")
         if self.database_path.exists():
             shutil.rmtree(self.database_path)
         self.client = chromadb.PersistentClient(
