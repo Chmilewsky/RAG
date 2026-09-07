@@ -88,7 +88,7 @@ class IndexRetriever:
 
 
 class SoloQuery:
-    """Single-query BM25 retriever"""
+    """Single-query BM25 retriever."""
 
     def __init__(
         self, question: str = "what is the answer to all question",

@@ -28,7 +28,7 @@ class RagDataset(BaseModel):
 
 
 class MinimalSearchResults(BaseModel):
-    """pydantic check for answer format"""
+    """Data model representing search results for a single query."""
     question_id: str
     question: str
     retrieved_sources: list[MinimalSource]
@@ -40,12 +40,12 @@ class MinimalAnswer(MinimalSearchResults):
 
 
 class StudentSearchResults(BaseModel):
-    """pydantic check for llm answer format"""
+    """Data model aggregating batch search results and parameter k."""
     search_results: list[MinimalSearchResults]
     k: int
 
 
 class StudentSearchResultsAndAnswer(BaseModel):
-    """pydantic check for llm answer format"""
+    """Data model aggregating batch search results with generated answers."""
     search_results: list[MinimalAnswer]
     k: int

@@ -189,7 +189,6 @@ class FileChunker:
 
         Args:
             chunk: Input chunk to check.
-            datapath: Source file path.
 
         Yields:
             Chunk: Original chunk or sub-chunks if fallback was required.
