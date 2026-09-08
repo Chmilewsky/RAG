@@ -94,8 +94,9 @@ class HybridRetrieval:
             chunk_id = self.chunks[index]["id"]
             rrf_scores[chunk_id] = rrf_scores.get(
                 chunk_id, 0.0) + (1.0 / (k + rank))
-        for rank, id in enumerate(db, start=1):
-            rrf_scores[id] = rrf_scores.get(id, 0.0) + (1.0 / (k + rank))
+        for rank, chunk_id in enumerate(db, start=1):
+            rrf_scores[chunk_id] = rrf_scores.get(
+                chunk_id, 0.0) + (1.0 / (k + rank))
 
         sorted_results = sorted(
             rrf_scores,

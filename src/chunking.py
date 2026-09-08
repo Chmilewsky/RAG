@@ -48,7 +48,7 @@ class ChunkingPipeline:
                 if chunks:
                     self.writer.write(chunks)
             except Exception as e:
-                print(f"file {e} could not be loaded")
+                print(f"File {file} could not be loaded: {e}")
 
 
 class FileScanner:
@@ -58,7 +58,7 @@ class FileScanner:
         """Initialize the scanner with a dataset path."""
         self.data_path = dataset_path
 
-    def folder_or_file(self) -> Iterator:
+    def folder_or_file(self) -> Iterator[Path]:
         """Yield valid file paths from the dataset directory or single file.
 
         Yields:

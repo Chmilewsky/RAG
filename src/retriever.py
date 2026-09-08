@@ -86,7 +86,6 @@ class SoloQuery:
             k: int = 5) -> None:
         """Initialize query parameters, load chunks and
           load the BM25 index."""
-        self.save_path = Path("data/output/search_results/UnansweredQuestions")
         self.question = question
         self.k = k
         with open("data/processed/chunk_data.jsonl",
