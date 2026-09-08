@@ -80,6 +80,7 @@ uv run python -m src hybrid --dataset_path data/datasets/UnansweredQuestions/dat
 In accordance with 42 guidelines, artificial intelligence tools were consulted during the development of this project:
 * **Library Comparison**: Evaluated different third-party libraries and tools to assess their features, performance, and relevance to the project requirements.
 * **Chunking Methodologies**: Deepened the conceptual understanding of various document splitting strategies (recursive markdown, AST code chunking, and token-based fallback).
+* **Splitting Rules**: Generating custom rules for Markdown chunking.
 * **Lexical Search (BM25s)**: Clarified the internal mechanics, scoring principles, and parameter behavior of the BM25s retrieval algorithm.
 * **Hybrid Retrieval Fusion**: Guided the conceptualization and logic behind combining lexical BM25 results with semantic search into a unified ranking.
 * **Code Ownership & Validation**: All suggested ideas, structures, and implementations were manually tested, adapted, and fully understood before integration into the codebase.
@@ -171,27 +172,27 @@ For diverse source and configuration files (`.yaml`, `.cu`, `.sh`, `.toml`, `.cp
 
 ## Retrieval method
 
-Retrieval and indexing are powered by `bm25s`, which handles tokenization, corpus scoring, and ranking:
+ndexing and searching are handled by `bm25s`, which breaks text into words, scores their importance, and ranks the results:g:
 
 ### What is BM25?
 
-BM25 is a ranking algorithm used by retrieval engines (e.g., Elasticsearch, Lucene) to score document relevance against a search query, improving upon standard TF-IDF.
+BM25 is a search algorithm. When you search for keywords, BM25 looks at all your documents and scores how relevant each one is to your question. It is an improved, smarter version of classic TF-IDF.
 
 ---
 
 ### Core Mechanics
 
-* **Term Frequency (TF) Saturation**: Tracks query term occurrences with diminishing returns. Beyond a saturation threshold, repeated occurrences no longer scale the score linearly, mitigating keyword stuffing.
-* **Inverse Document Frequency (IDF)**: Dynamically weights term specificity. Common words across the corpus (e.g., *"the"*, *"using"*) receive minimal weight, while rare terms receive higher relevance scores.
-* **Document Length Normalization**: Adjusts scoring relative to average corpus length, penalizing artificially inflated match counts in long documents to keep evaluation fair for concise texts.
+* **Term Frequency (TF) with Diminishing Returns**: If a search word appears in a chunk, that chunk gets points. But repeating the word over and over gives less and less extra points. This prevents someone from "gaming" the search by repeating the same keyword 50 times.
+* **Inverse Document Frequency (IDF)**: Rare words are much more informative than common words. A word that only appears in two documents (like *"optimizer"*) gives a huge score boost, while a word that appears everywhere (like *"file"*) gives very few points.
+* **Document Length Fair Play**: Long documents naturally contain more words, so they would normally get more matches by sheer luck. BM25 penalizes unusually long chunks so that short, focused passages have a fair chance to win.
 
 ---
 
 | Component | Mechanism | Objective |
 | --- | --- | --- |
-| **TF Saturation** | Applies a diminishing return ceiling to term counts | Prevents keyword spam bias |
-| **IDF Penalty** | Evaluates document frequency across the whole corpus | Prioritizes rare, discriminative terms |
-| **Length Normalization** | Compares document size against corpus average | Eliminates document length bias |
+| **TF Saturation** | Caps the score boost when a word is repeated | Stops repetitive text from cheating |
+| **IDF Penalty** | Checks how rare a word is across all documents | Gives the spotlight to unique, key words |
+| **Length Normalization** | Compares chunk size against the average size | Keeps short, accurate snippets competitive |
 
 ---
 
@@ -203,19 +204,17 @@ The indexer configures BM25 with specific parameters:
 retriever = bm25s.BM25(k1=1.4, b=0.75)
 ```
 
+* **`k1 = 1.4` (Word Repetition Cap)**:
+  * Controls how fast repeated words stop giving bonus points.
+  * **Higher `k1`**: Repeating a word continues to increase the score.
+  * **Lower `k1`**: Repeating a word flattens out quickly; saying it once or ten times gives almost the same points.
+  * *Why 1.4?* It rewards chunks that genuinely use an important function name two or three times, without letting boilerplate repetition drown out rare terms.
 
-* **`k1 = 1.4` (Term Frequency Saturation)**:
-  * Controls the non-linear saturation rate of term frequency.
-  * **Higher `k1`**: The score scales more with repeated occurrences of a query word.
-  * **Lower `k1`**: The score saturates rapidly, making repeated occurrences contribute little beyond the initial appearance.
-  * *Impact*: With `k1 = 1.4`, snippets that legitimately reference a class or function name multiple times receive higher relevance without allowing boilerplate repetitions to overpower rare keywords.
-
-* **`b = 0.75` (Document Length Normalization)**:
-  * Regulates the penalty applied to chunks longer than the corpus average length ($\text{avgdl}$).
-  * **`b = 1.0`**: Complete length penalty (a chunk twice as long needs twice as many keyword matches).
-  * **`b = 0.0`**: Disables length normalization entirely, giving an unfair advantage to larger chunks.
-  * *Impact*: With `b = 0.75`, long documentation pages are prevented from dominating the ranking simply because they contain more tokens, while concise and highly targeted code snippets remain competitive.
-
+* **`b = 0.75` (Length Penalty)**:
+  * Controls how much we penalize chunks that are longer than the average document length.
+  * **`b = 1.0`**: Full penalty (a chunk twice as long must have twice as many matches to get the same score).
+  * **`b = 0.0`**: Zero penalty (long documents win easily).
+  * *Why 0.75?* It stops massive documentation pages from winning just because they are long, allowing short, punchy code functions to rank high.
 ---
 
 ### Tokenization: Stemmer and Stop Words
@@ -228,12 +227,12 @@ tokens = bm25s.tokenize(text, stemmer=stemmer, stopwords="en")
 ```
 
 * **Stemming (Snowball / PyStemmer)**:
-  * **How it is called**: We instantiate `stemmer = Stemmer.Stemmer("english")` via `PyStemmer` and pass it directly to `bm25s.tokenize(..., stemmer=stemmer)`. The tokenizer automatically invokes the stemmer on all extracted tokens in both indexing and query retrieval.
-  * **How it works**: It uses the **Snowball algorithm**, which applies algorithmic suffix-stripping rules (e.g., stripping *-ing*, *-ed*, *-tion*, *-s*) without needing a heavy dictionary lookup.
-  * **Why it matters**: Words like *"configuring"*, *"configured"*, and *"configuration"* all reduce to the base stem *"configur"*. This ensures that a query using a verb will accurately match source code or documentation using the noun variant.
-* **Stop Words Filtering (`stopwords="en"`)**:
-  * Strips out overly common words that carry no discriminative meaning (such as *"the"*, *"is"*, *"at"*, *"which"*, *"for"*).
-  * Prevents generic filler words from diluting BM25 scores, keeping the search focused strictly on domain keywords.
+  * **How we use it**: We create `stemmer = Stemmer.Stemmer("english")` and pass it to `bm25s.tokenize()`. It automatically trims suffixes from every word.
+  * **How it works**: The Snowball algorithm strips word endings like *-ing*, *-ed*, *-tion*, or *-s*.
+  * **Why it matters**: Words like *"configuring"*, *"configured"*, and *"configuration"* all boil down to their root *"configur"*. That way, if a user asks *"how to configure"*, it will easily find documents that talk about *"configuration"*.
+* **Stop Words (`stopwords="en"`)**:
+  * We automatically remove everyday filler words (*"the"*, *"is"*, *"at"*, *"which"*, *"for"*).
+  * This keeps search scores focused only on meaningful keywords.
 
 ---
 
@@ -267,13 +266,13 @@ tokens = bm25s.tokenize(text, stemmer=stemmer, stopwords="en")
 In addition to the mandatory lexical pipeline, two bonuses are implemented:
 
 ### 1. Semantic Embeddings (ChromaDB Vector Store)
-* Semantic vector processing and storage are handled entirely by **ChromaDB**.
-* By default, ChromaDB's `DefaultEmbeddingFunction` automatically runs the **`all-MiniLM-L6-v2`** model using **ONNX Runtime (100% CPU)**, matching the exact lightweight model recommended in the subject specification.
-* The vector collection is persisted locally on disk under `data/processed/vector_DataBase/`.
+* While BM25 searches for exact words, semantic search looks for **meaning**. Even if you use different words, it understands what you mean.
+* We store vectors locally in **ChromaDB** under `data/processed/vector_DataBase/`.
+* It automatically runs the small **`all-MiniLM-L6-v2`** model on CPU using ONNX, matching the recommended model from the subject.
 * Command: `uv run python -m src semantic --max_chunk_size 2000` (or `make semantic`).
 
 ### 2. Hybrid Retrieval (Reciprocal Rank Fusion - RRF)
-* Combines exact keyword search (BM25) and semantic meaning search (ChromaDB) into a single result list.
+* Hybrid search gives you the best of both worlds: BM25 catches exact variable and function names, while ChromaDB catches concepts and general meaning.
 * **How RRF works simply**:
   * BM25 and vector search output completely different types of scores that cannot be easily compared or added together.
   * Instead of comparing raw score numbers, RRF looks only at the **rank position** (1st, 2nd, 3rd...) of each document in both result lists.
