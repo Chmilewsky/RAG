@@ -94,11 +94,12 @@ class SoloQuery:
             self.chunks = [json.loads(line) for line in f]
         self.import_retriever = bm25s.BM25.load("./data/processed")
 
-    def __call__(self) -> None:
+    def __call__(self) -> StudentSearchResults:
         """Run the single-query retrieval pipeline."""
-        self.retriever()
+        data = self.retriever()
+        return data
 
-    def retriever(self) -> None:
+    def retriever(self) -> StudentSearchResults:
         """Retrieve top-k chunks for the query,
           print matches, and save results to JSON."""
         stemmer = Stemmer.Stemmer("english")
@@ -139,9 +140,4 @@ class SoloQuery:
                     f"{output.file_path} "
                     f"[{output.first_character_index}:"
                     f"{output.last_character_index}]")
-
-        savefile = self.save_path / "solo_answer.json"
-        savefile.parent.mkdir(parents=True, exist_ok=True)
-        savefile.write_text(
-            final_output.model_dump_json(
-                indent=2), encoding="UTF-8")
+        return final_output

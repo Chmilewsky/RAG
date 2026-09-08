@@ -22,7 +22,8 @@ class MessagePrep:
             sources: list[MinimalSource]) -> tuple[str, list[MinimalSource]]:
         """Build a context-injected prompt and
           return candidate sources for a question."""
-        context_text = "\n\n".join(r.chunk_txt for r in sources if r.chunk_txt)
+        context_text = "\n\n".join(self.extract_source_text(r)
+                                   for r in sources)
 
         message = (
             f"Context information is below.\n"
@@ -34,23 +35,28 @@ class MessagePrep:
         )
         return message, sources
 
+    def extract_source_text(self, source: MinimalSource) -> str:
+        if source.chunk_txt:
+            return source.chunk_txt
+        try:
+            with open(source.file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            return (
+                content[source.first_character_index:source.
+                        last_character_index])
+        except Exception:
+            return ""
+
 
 class SoloMessagePrep:
     """Format prompt messages with retrieved context for a single query."""
 
-    def __init__(self) -> None:
-        """Initialize the path to solo search results."""
-        self.retrieve = Path("data/output/search_results/"
-                             "UnansweredQuestions/solo_answer.json")
-
     def question_add(
-            self, question: str, k: int) -> str:
+            self, data: StudentSearchResults, k: int) -> str:
         """Build a context-injected prompt and
           return candidate sources for a single question."""
         context_text = ""
-        with open(self.retrieve, "r", encoding="UTF-8") as f:
-            retrieve_data = StudentSearchResults.model_validate_json(f.read())
-        msg = retrieve_data.search_results[0]
+        msg = data.search_results[0]
         question_text = msg.question
         for r in msg.retrieved_sources[:k]:
             context_text += f"{r.chunk_txt} \n"
@@ -73,7 +79,8 @@ class Answer:
                      "data/output/search_results/"
                      "UnansweredQuestions/dataset_code_public.json"),
                  save_directory: str = "data/output/"
-                 "search_results/UnansweredQuestions") -> None:
+                 "search_results_and_answer/"
+                 "UnansweredQuestions") -> None:
         """Initialize target model, dataset paths, and retrieval parameters."""
         self.model = 'qwen3:0.6b'
         self.question = Path(student_search_results_path)
@@ -131,11 +138,11 @@ class Answer:
 class SoloAnswer:
     """Single-query answer generator using Ollama."""
 
-    def __init__(self, query: str, k: int) -> None:
+    def __init__(self, data: StudentSearchResults, k: int) -> None:
         """Initialize the query, top-k parameter, and target model."""
         self.model = 'qwen3:0.6b'
-        self.question = query
         self.k = k
+        self.data = data
 
     def __call__(self) -> Any:
         """Execute the single-query answer pipeline."""
@@ -145,7 +152,7 @@ class SoloAnswer:
         """Query Ollama with context retrieved for the single question and
           print the output."""
         content = SoloMessagePrep()
-        msg = content.question_add(self.question, self.k)
+        msg = content.question_add(self.data, self.k)
         messages = [
             {
                 'role': 'system',

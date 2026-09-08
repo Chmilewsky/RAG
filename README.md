@@ -239,9 +239,24 @@ tokens = bm25s.tokenize(text, stemmer=stemmer, stopwords="en")
 
 ## Performance analysis
 
-* **Chunk Size**: Larger chunks (close to the 2000-character limit) provide more context and keywords for BM25, making it easier to match relevant queries.
-* **Chunk Overlap**: Overlapping chunks prevent keywords from being cut in half at boundaries, which directly improves Recall@k scores.
-* **Code vs. Documentation**: Documentation queries typically achieve higher recall because explanations share natural vocabulary, while code queries depend heavily on exact identifier and function names.
+The retrieval accuracy ($\text{Recall}@k$) and ranking efficiency are directly influenced by the interaction between document chunking granularity and BM25 scoring mechanics:
+
+* **Minimum Chunk Threshold (`min_characters_per_chunk = 310`)**:
+  * **Length Normalization vs. Term Density**: BM25 incorporates document length penalization via the $b$ parameter ($b=0.75$). Finding 5 query keywords in a compact, focused chunk of ~350 characters yields a much higher keyword density and score than finding the same 5 words diluted across an oversized 2000-character chunk.
+  * **Avoiding Fragmented Noise**: Setting a minimum threshold prevents the chunker from generating tiny fragments (e.g., isolated headers or single lines) that match queries out of context. Ensuring chunks have at least 310 characters provides sufficient semantic context while keeping term density high enough to climb into the top-$k$ results.
+
+* **Identifier Expansion (Snake Case to Words)**:
+  * In codebases, concepts are encoded in identifiers like `fused_batched_moe` or `activation_formats`, while user queries are formulated in natural language (*"activation formats"*).
+  * Replacing underscores with spaces (`text.replace("_", " ")`) during indexing exposes individual constituent terms to the tokenizer, allowing natural language queries to match exact code identifiers.
+
+* **Filename & Path Weighting**:
+  * In BM25, source location precision is strict: a chunk only counts if it belongs to the exact matching file.
+  * Prepending and duplicating the filename and path in the indexing string (`f"{filename} {filename} {filepath} ..."`) artificially boosts the document frequency of component names, ensuring that chunks from the target module rank in the top-$k$ even when query terms are generic.
+
+* **Chunk Overlap**:
+  * Chunks segmented with a 20% overlap (`chunk_size // 5`) prevent boundary truncation. Without overlap, functions or sentences split across two chunks lose term co-occurrence, significantly degrading Recall@1 and Recall@3.
+
+
 
 ---
 

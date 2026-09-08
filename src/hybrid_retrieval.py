@@ -55,8 +55,8 @@ class HybridRetrieval:
             db_result = self.collection.query(
                 query_texts=[query], n_results=self.k)
             top_k = self.rrf(results[0], db_result["ids"][0])
-            for k in top_k[:self.k]:
-                chunk = self.chunks_by_id[k]
+            for chunk_id in top_k[:self.k]:
+                chunk = self.chunks_by_id[chunk_id]
                 start = chunk["start_index"]
                 end = chunk["end_index"]
                 retrieved_sources.append(
@@ -91,8 +91,9 @@ class HybridRetrieval:
         k = 60
         rrf_scores: dict = {}
         for rank, index in enumerate(bm25, start=1):
-            id = self.chunks[index]["id"]
-            rrf_scores[id] = rrf_scores.get(id, 0.0) + (1.0 / (k + rank))
+            chunk_id = self.chunks[index]["id"]
+            rrf_scores[chunk_id] = rrf_scores.get(
+                chunk_id, 0.0) + (1.0 / (k + rank))
         for rank, id in enumerate(db, start=1):
             rrf_scores[id] = rrf_scores.get(id, 0.0) + (1.0 / (k + rank))
 

@@ -1,14 +1,15 @@
+import sys
+import pydantic
+import ollama
 from src.chunking import ChunkingPipeline
 from src.indexing import Indexing
 from src.retriever import IndexRetriever, SoloQuery
 from src.llmanswer import SoloAnswer, Answer
 from src.evaluation import Eval
-from src.chromadb import SemanticEmbeddings
+from src.semantic_db import SemanticEmbeddings
 from src.hybrid_retrieval import HybridRetrieval
 from chromadb.errors import NotFoundError, ChromaError
-import ollama
-import pydantic
-import sys
+from src.models import StudentSearchResults
 
 
 class CLI:
@@ -22,7 +23,7 @@ class CLI:
             print("Max chunk size must be between 200 and 2000")
             sys.exit(1)
         if not dataset_path.strip():
-            print("path for data set cant be empty")
+            print("path for data set cannot be empty")
             sys.exit(1)
         try:
             chunker = ChunkingPipeline(
@@ -41,10 +42,10 @@ class CLI:
                k: int = 5) -> None:
         """Execute a single-query BM25 search and print matching chunks."""
         if k <= 0:
-            print("k must be superior to 0")
+            print("k must be greater than 0")
             sys.exit(1)
         if not query.strip():
-            print("query cant be empty")
+            print("query cannot be empty")
             sys.exit(1)
         try:
             solo_retrieve = SoloQuery(question=query, k=k)
@@ -61,14 +62,14 @@ class CLI:
         """Run batch BM25 retrieval over an evaluation dataset
           and save results."""
         if k <= 0:
-            print("k must be superior to 0")
+            print("k must be greater than 0")
             sys.exit(1)
         if not dataset_path.strip():
-            print("path for data set cant be empty")
+            print("path for data set cannot be empty")
             sys.exit(1)
 
         if not save_directory.strip():
-            print("path for save directory cant be empty")
+            print("path for save directory cannot be empty")
             sys.exit(1)
         try:
             search_data = IndexRetriever(
@@ -86,16 +87,16 @@ class CLI:
         """Retrieve context for a single query and
           generate an answer using the LLM."""
         if k <= 0:
-            print("k must be superior to 0")
+            print("k must be greater than 0")
             sys.exit(1)
         if not query.strip():
-            print("query cant be empty")
+            print("query cannot be empty")
             sys.exit(1)
         try:
             solo_retrieve = SoloQuery(question=query, k=k)
-            solo_retrieve()
+            retrieve: StudentSearchResults = solo_retrieve()
 
-            solo_answer = SoloAnswer(query=query, k=k)
+            solo_answer = SoloAnswer(data=retrieve, k=k)
             solo_answer()
         except FileNotFoundError as e:
             print(f"Error: {e}", file=sys.stderr)
@@ -108,19 +109,16 @@ class CLI:
                        student_search_results_path: str = (
                            "data/output/search_results/"
                            "UnansweredQuestions/dataset_code_public.json"),
-                       k: int = 5,
                        save_directory: str = ("data/output/"
                                               "search_results_and_answer/"
                                               "UnansweredQuestions")) -> None:
         """Generate LLM answers in batch for an evaluation dataset."""
-        if k <= 0:
-            print("k must be superior to 0")
-            sys.exit(1)
+
         if not student_search_results_path.strip():
-            print("path for data set cant be empty")
+            print("path for data set cannot be empty")
             sys.exit(1)
         if not save_directory.strip():
-            print("path for save directory cant be empty")
+            print("path for save directory cannot be empty")
             sys.exit(1)
         try:
             answer_data = Answer(
@@ -145,17 +143,17 @@ class CLI:
           comparing retrieval results against ground truth."""
 
         if not student_search_results_path.strip():
-            print("path for data set cant be empty")
+            print("path for student search results cannot be empty")
             sys.exit(1)
         if not dataset_path.strip():
-            print("path for data set cant be empty")
+            print("path for data set cannot be empty")
             sys.exit(1)
 
         try:
-            eval = Eval(
+            evaluation = Eval(
                 student_search_results_path=student_search_results_path,
                 dataset_path=dataset_path)
-            eval()
+            evaluation()
         except (FileNotFoundError, ValueError, pydantic.ValidationError) as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
@@ -168,7 +166,7 @@ class CLI:
             print("Max chunk size must be between 200 and 2000")
             sys.exit(1)
         if not dataset_path.strip():
-            print("path for data set cant be empty")
+            print("path for data set cannot be empty")
             sys.exit(1)
 
         try:
@@ -193,14 +191,14 @@ class CLI:
         """Execute batch hybrid retrieval combining
           BM25 and ChromaDB via RRF."""
         if k <= 0:
-            print("k must be superior to 0")
+            print("k must be greater than 0")
             sys.exit(1)
         if not dataset_path.strip():
-            print("path for data set cant be empty")
+            print("path for data set cannot be empty")
             sys.exit(1)
 
         if not save_directory.strip():
-            print("path for save directory cant be empty")
+            print("path for save directory cannot be empty")
             sys.exit(1)
         try:
             search_data = HybridRetrieval(

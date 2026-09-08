@@ -22,9 +22,9 @@ class SemanticEmbeddings:
 
     def __call__(self) -> None:
         """Execute the database ingestion pipeline."""
-        self.FillingDb()
+        self.fill_db()
 
-    def FillingDb(self) -> None:
+    def fill_db(self) -> None:
         """Read chunk data from JSONL and
           add documents with metadata to ChromaDB in batches."""
         ids: list[str] = []

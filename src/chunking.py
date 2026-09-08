@@ -48,7 +48,7 @@ class ChunkingPipeline:
                 if chunks:
                     self.writer.write(chunks)
             except Exception as e:
-                print(f"file {e} coulnt be loaded")
+                print(f"file {e} could not be loaded")
 
 
 class FileScanner:
@@ -89,6 +89,10 @@ class FileChunker:
             chunk_size=chunk_size,
             chunk_overlap=chunk_size // 5
         )
+        config_path = Path(__file__).parent / "custom_markdown.json"
+        with open(config_path, "r", encoding="utf-8") as f:
+            rules_dict = json.load(f)
+        self.custom_rules = RecursiveRules.from_dict(rules_dict)
 
     def file_type_filter(self, data: Path) -> list[dict[str, Any]] | None:
         """Filter file by extension and route to the corresponding chunker.
@@ -137,18 +141,14 @@ class FileChunker:
     def md_chonking(self, data: Path) -> list[dict[str, Any]]:
         """Chunk a Markdown file using recursive chunking."""
         data_path = str(data)
-        config_path = Path(__file__).parent / "custom_markdown.json"
 
-        with open(config_path, "r", encoding="utf-8") as f:
-            rules_dict = json.load(f)
-        custom_rules = RecursiveRules.from_dict(rules_dict)
         md_pipeline = (
             Pipeline().fetch_from(
                 "file", path=data_path)
             .process_with("text")
             .chunk_with("recursive", chunk_size=self.chunk_size,
                         min_characters_per_chunk=310,
-                        tokenizer="character", rules=custom_rules).run())
+                        tokenizer="character", rules=self.custom_rules).run())
 
         chunks = self.metadata_add(md_pipeline, data)
         return chunks

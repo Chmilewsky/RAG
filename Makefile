@@ -36,7 +36,7 @@ lint:
 	@uv run mypy src --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 	@echo "✅ $(GREEN)The analysis is complete !$(RESET)"
 
-lint-strict: ## Analyse statique en mode strict
+lint-strict:
 	@echo "🔍🔍🔍  $(YELLOW)strict analysis...$(RESET)"
 	@uv run flake8 src
 	@uv run mypy --strict src
@@ -70,7 +70,6 @@ evalcode:
 evaldocs:
 	./moulinette evaluate_student_search_results data/output/search_results/UnansweredQuestions/dataset_docs_public.json data/datasets/AnsweredQuestions/dataset_docs_public.json --k 10 --max_context_length 2000
 
-kill:
-	pkill ollama
 
-.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset eval semantic hybrid kill
+
+.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset eval semantic hybrid
