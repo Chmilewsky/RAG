@@ -8,8 +8,8 @@ Retrieval-Augmented Generation is a technique that enables a Large Language Mode
 
 ### How the Pipeline Works
 
-1. **Document Ingestion & Chunking**: Target files are loaded and divided into segments under a defined maximum character threshold while preserving semantic integrity (e.g., splitting at chapter breaks for plain text, class/method boundaries for code, or header sections for Markdown). Each chunk is stored with its structural metadata, including source file provenance and start/end character offsets.
-2. **Lexical Indexing (BM25)**: Chunks are indexed using the BM25 algorithm. BM25 scores terms based on term frequency (TF) and inverse document frequency (IDF) while adjusting for document length and penalizing non-discriminative stop words (e.g., *a*, *is*, *it*, *for*).
+1. **Document Ingestion & Chunking**: Target files are loaded and divided into segments under a defined maximum character threshold while preserving semantic integrity (e.g., splitting with overlap for plain text, class/method boundaries for code, or header sections for Markdown). Each chunk is stored with its structural metadata, including source file provenance and start/end character offsets.
+2. **Lexical Indexing (BM25)**: Chunks are tokenized (filtering stop words and applying stemming) and indexed using the BM25 algorithm. BM25 scores terms based on term frequency (TF) and inverse document frequency (IDF) while normalizing for document length.
 3. **Query Matching & Retrieval**: When a query is submitted, it undergoes identical tokenization and scoring against the index to identify and rank the top-$k$ most relevant document chunks.
 4. **Context Augmentation & Generation**: The top-$k$ chunks are formatted into an augmented context block and injected into the LLM prompt alongside the original query (`Prompt = Retrieved Context + User Question`), allowing the model to produce a grounded response.
 
@@ -80,7 +80,7 @@ uv run python -m src hybrid --dataset_path data/datasets/UnansweredQuestions/dat
 In accordance with 42 guidelines, artificial intelligence tools were consulted during the development of this project:
 * **Library Comparison**: Evaluated different third-party libraries and tools to assess their features, performance, and relevance to the project requirements.
 * **Chunking Methodologies**: Deepened the conceptual understanding of various document splitting strategies (recursive markdown, AST code chunking, and token-based fallback).
-* **Splitting Rules**: Generating custom rules for Markdown chunking.
+* **Splitting Rules**: Designed custom hierarchical rules for Markdown chunking.
 * **Lexical Search (BM25s)**: Clarified the internal mechanics, scoring principles, and parameter behavior of the BM25s retrieval algorithm.
 * **Hybrid Retrieval Fusion**: Guided the conceptualization and logic behind combining lexical BM25 results with semantic search into a unified ranking.
 * **Code Ownership & Validation**: All suggested ideas, structures, and implementations were manually tested, adapted, and fully understood before integration into the codebase.
@@ -172,7 +172,7 @@ For diverse source and configuration files (`.yaml`, `.cu`, `.sh`, `.toml`, `.cp
 
 ## Retrieval method
 
-ndexing and searching are handled by `bm25s`, which breaks text into words, scores their importance, and ranks the results:g:
+Indexing and searching are handled by `bm25s`, which breaks text into words, scores their importance, and ranks the results:
 
 ### What is BM25?
 
@@ -191,7 +191,7 @@ BM25 is a search algorithm. When you search for keywords, BM25 looks at all your
 | Component | Mechanism | Objective |
 | --- | --- | --- |
 | **TF Saturation** | Caps the score boost when a word is repeated | Stops repetitive text from cheating |
-| **IDF Penalty** | Checks how rare a word is across all documents | Gives the spotlight to unique, key words |
+| **IDF Weighting** | Checks how rare a word is across all documents | Gives the spotlight to unique, key words |
 | **Length Normalization** | Compares chunk size against the average size | Keeps short, accurate snippets competitive |
 
 ---
@@ -215,6 +215,7 @@ retriever = bm25s.BM25(k1=1.4, b=0.75)
   * **`b = 1.0`**: Full penalty (a chunk twice as long must have twice as many matches to get the same score).
   * **`b = 0.0`**: Zero penalty (long documents win easily).
   * *Why 0.75?* It stops massive documentation pages from winning just because they are long, allowing short, punchy code functions to rank high.
+
 ---
 
 ### Tokenization: Stemmer and Stop Words
@@ -236,8 +237,6 @@ tokens = bm25s.tokenize(text, stemmer=stemmer, stopwords="en")
 
 ---
 
-
-
 ## Performance analysis
 
 * **Chunk Size**: Larger chunks (close to the 2000-character limit) provide more context and keywords for BM25, making it easier to match relevant queries.
@@ -257,7 +256,6 @@ tokens = bm25s.tokenize(text, stemmer=stemmer, stopwords="en")
 
 * **Markdown Pre-Processing Artifacts**: `chonkie`'s built-in Markdown splitter performed pre-extraction routines that aggressively stripped headers and fragmented content, degrading downstream chunk quality.
 * **Solution**: Markdown files were ingested using standard text mode configured with explicit priority split rules, preserving document structure without unwanted pre-extraction.
-
 
 ---
 
