@@ -69,10 +69,10 @@ uv run python -m src hybrid --dataset_path data/datasets/UnansweredQuestions/dat
 
 * [Chonkie Documentation](https://docs.chonkie.ai/common/welcome) — Lightweight chunking library for RAG applications.
 * [Chonkie GitHub Repository](https://github.com/feyninc/chonkie) — Source code and implementation concepts.
+* [Magika by Google](https://github.com/google/magika) — Deep learning-based file type and programming language detection.
 * [BM25S PyPI Package](https://pypi.org/project/bm25s/0.1.5/) — Fast BM25 implementation in Python.
 * [BM25S GitHub Repository](https://github.com/xhluca/bm25s) — Lexical search indexer using sparse matrices.
 * [BM25 Algorithm Overview (GeeksforGeeks)](https://www.geeksforgeeks.org/nlp/what-is-bm25-best-matching-25-algorithm/) — Algorithmic explanation of Best Matching 25.
-* [Python AST Module (W3Schools)](https://www.w3schools.com/python/ref_module_ast.asp) — Reference for Abstract Syntax Tree parsing in Python.
 * [TQDM Progress Bar Guide (GeeksforGeeks)](https://www.geeksforgeeks.org/python/python-how-to-make-a-terminal-progress-bar-using-tqdm/) — Progress bar utilities for batch operations.
 * [ChromaDB Documentation](https://docs.trychroma.com/docs/overview/getting-started) — Vector database for lightweight CPU semantic embeddings.
 
@@ -81,7 +81,6 @@ In accordance with 42 guidelines, artificial intelligence tools were consulted d
 * **Library Comparison**: Evaluated different third-party libraries and tools to assess their features, performance, and relevance to the project requirements.
 * **Chunking Methodologies**: Deepened the conceptual understanding of various document splitting strategies (recursive markdown, AST code chunking, and token-based fallback).
 * **Lexical Search (BM25s)**: Clarified the internal mechanics, scoring principles, and parameter behavior of the BM25s retrieval algorithm.
-* **Database & Index Management**: Assisted in designing the data storage pipeline, metadata tracking, and structured persistence of chunked data.
 * **Hybrid Retrieval Fusion**: Guided the conceptualization and logic behind combining lexical BM25 results with semantic search into a unified ranking.
 * **Code Ownership & Validation**: All suggested ideas, structures, and implementations were manually tested, adapted, and fully understood before integration into the codebase.
 
@@ -155,11 +154,18 @@ The system follows a sequential, decoupled retrieval and generation architecture
 
 ## Chunking strategy
 
-Chunking is handled using the `chonkie` library:
+Chunking is handled using the `chonkie` library with distinct strategies depending on the file type:
 
-* **Format-Specific Splitting**: Provides tailored splitting rules based on file types to maintain semantic cohesion.
-* **Priority-Based Hierarchy**: Splitting rules prioritize structural breakpoints (e.g., function boundaries, classes, markdown headers, paragraph breaks) rather than cutting mid-sentence.
-* **Boundary Validation & Sliding Fallback**: Semantic splitting can occasionally exceed maximum character limits when avoiding awkward breaks. To enforce strict token limits, chunks undergo size validation. Chunks that exceed the boundary are processed through a fixed-size fallback splitter with character overlap to preserve context across splits.
+### 1. Chunking Methods
+
+* **Code Chunking (`py_chonking` & `magika_chonking`)**: Applied to Python files (`.py`) and various source files. It splits along logical code boundaries (classes, functions, methods) to preserve code structure.
+* **Recursive Chunking with Rules (`md_chonking`)**: Applied to Markdown files (`.md`). It uses custom hierarchical rules (`custom_markdown.json`) to split content based on markdown headers and section delimiters.
+* **Simple Token Chunking (`brut_chunk`)**: Applied to plain text (`.txt`). It performs a direct cut at `max_chunk_size` with an automatic overlap (`chunk_size // 5`) to preserve continuity across chunk boundaries.
+
+
+For diverse source and configuration files (`.yaml`, `.cu`, `.sh`, `.toml`, `.cpp`, `.json`, `.cuh`, `.jinja`, `.h`), the pipeline integrates Google's **Magika**:
+* Rather than relying solely on file extensions, Magika inspects file content using a lightweight neural network to accurately identify the programming language.
+* The detected label is passed directly to the code chunker (`language=lang`), enabling syntax-aware code chunking adapted to that specific language.
 
 ---
 
@@ -189,7 +195,7 @@ BM25 is a ranking algorithm used by retrieval engines (e.g., Elasticsearch, Luce
 
 ---
 
-### Hyperparameter Tuning: `k1` and `b`
+### Parameter Tuning: `k1` and `b`
 
 The indexer configures BM25 with specific parameters:
 
@@ -212,21 +218,39 @@ retriever = bm25s.BM25(k1=1.4, b=0.75)
 
 ---
 
+### Tokenization: Stemmer and Stop Words
+
+Both the indexing pipeline and query retrieval apply identical tokenization via `bm25s`:
+
+```python
+stemmer = Stemmer.Stemmer("english")
+tokens = bm25s.tokenize(text, stemmer=stemmer, stopwords="en")
+```
+
+* **Stemming (Snowball / PyStemmer)**:
+  * **How it is called**: We instantiate `stemmer = Stemmer.Stemmer("english")` via `PyStemmer` and pass it directly to `bm25s.tokenize(..., stemmer=stemmer)`. The tokenizer automatically invokes the stemmer on all extracted tokens in both indexing and query retrieval.
+  * **How it works**: It uses the **Snowball algorithm**, which applies algorithmic suffix-stripping rules (e.g., stripping *-ing*, *-ed*, *-tion*, *-s*) without needing a heavy dictionary lookup.
+  * **Why it matters**: Words like *"configuring"*, *"configured"*, and *"configuration"* all reduce to the base stem *"configur"*. This ensures that a query using a verb will accurately match source code or documentation using the noun variant.
+* **Stop Words Filtering (`stopwords="en"`)**:
+  * Strips out overly common words that carry no discriminative meaning (such as *"the"*, *"is"*, *"at"*, *"which"*, *"for"*).
+  * Prevents generic filler words from diluting BM25 scores, keeping the search focused strictly on domain keywords.
+
+---
+
 
 
 ## Performance analysis
 
-Empirical evaluation reveals distinct performance variations based on the chunking strategy:
-
-* **Fixed Overlap vs. Semantic Splits**: Brute-force fixed chunking with overlap consistently scored higher on **Recall@k** benchmarks than clean semantic chunking (at functions, titles, or chapters).
-* **Metric Bias**: Standard Recall@k measures character and token index overlap against reference answer spans. Uniformly distributed, overlapping chunks offer broader spatial coverage across document offsets, increasing the probability of intersecting ground-truth spans compared to variable-sized semantic segments.
+* **Chunk Size**: Larger chunks (close to the 2000-character limit) provide more context and keywords for BM25, making it easier to match relevant queries.
+* **Chunk Overlap**: Overlapping chunks prevent keywords from being cut in half at boundaries, which directly improves Recall@k scores.
+* **Code vs. Documentation**: Documentation queries typically achieve higher recall because explanations share natural vocabulary, while code queries depend heavily on exact identifier and function names.
 
 ---
 
 ## Design decisions
 
-* **Lightweight Architecture over Monolithic Frameworks**: `chonkie` was chosen instead of heavy frameworks such as LangChain. It provides a focused, dependency-light open-source implementation with direct control over chunk boundaries and character offsets.
-* **Embedded Lexical Search**: Using `bm25s` eliminates the need for dedicated search infrastructure (e.g., Elasticsearch, OpenSearch) while delivering high-throughput lexical retrieval and native sparse matrix persistence.
+* **Why Chonkie**: Chosen for its simplicity compared to heavy frameworks like LangChain. In addition to being lightweight, Chonkie automatically calculates and provides character offsets (`start_index` and `end_index`) on each chunk, which is essential to satisfy the project's source location requirements.
+* **Why BM25s**: A very fast, embedded lexical search library that runs locally with NumPy/SciPy. It avoids the overhead of managing a dedicated search server (like Elasticsearch) while saving indices directly to disk.
 
 ---
 
@@ -235,8 +259,6 @@ Empirical evaluation reveals distinct performance variations based on the chunki
 * **Markdown Pre-Processing Artifacts**: `chonkie`'s built-in Markdown splitter performed pre-extraction routines that aggressively stripped headers and fragmented content, degrading downstream chunk quality.
 * **Solution**: Markdown files were ingested using standard text mode configured with explicit priority split rules, preserving document structure without unwanted pre-extraction.
 
-
-* **Strict Boundary Enforcement**: Balancing semantic unit completeness with hard character limits required implementing a secondary validation pass with overlapping cuts.
 
 ---
 

@@ -109,7 +109,8 @@ class FileChunker:
         elif data.suffix == ".txt":
             chunks = self.brut_chunk(data)
             return chunks
-        elif data.suffix in [".yaml", ".cu", ".sh", ".toml"]:
+        elif data.suffix in ([".yaml", ".cu", ".sh", ".toml", ".cpp",
+                              ".json", ".cuh", ".jinja", ".h"]):
             return self.magika_chonking(data)
         return None
 
@@ -196,9 +197,10 @@ class FileChunker:
         if chunk_len > self.chunk_size:
             offset = chunk.start_index
             for sub_chunk in self.tokenchunker(chunk.text):
-                sub_chunk.start_index += offset
-                sub_chunk.end_index += offset
-                yield sub_chunk
+                if isinstance(sub_chunk, Chunk):
+                    sub_chunk.start_index += offset
+                    sub_chunk.end_index += offset
+                    yield sub_chunk
         else:
             yield chunk
 

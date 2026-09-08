@@ -1,6 +1,7 @@
 from tqdm import tqdm
 import json
 import chromadb
+from chromadb.api.types import Metadata
 from pathlib import Path
 import shutil
 
@@ -26,9 +27,9 @@ class SemanticEmbeddings:
     def FillingDb(self) -> None:
         """Read chunk data from JSONL and
           add documents with metadata to ChromaDB in batches."""
-        ids = []
-        documents = []
-        metadatas = []
+        ids: list[str] = []
+        documents: list[str] = []
+        metadatas: list[Metadata] = []
 
         with open("data/processed/chunk_data.jsonl",
                   "r", encoding="utf-8") as f:

@@ -11,6 +11,7 @@ dependencies = [
     "magika>=1.0.3",
     "ollama>=0.6.2",
     "pydantic>=2.13.4",
+    "stemmer>=0.0.4",
     "tqdm>=4.70.0",
 ]
 

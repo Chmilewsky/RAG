@@ -2002,6 +2002,7 @@ dependencies = [
     { name = "magika" },
     { name = "ollama" },
     { name = "pydantic" },
+    { name = "stemmer" },
     { name = "tqdm" },
 ]
 
@@ -2020,6 +2021,7 @@ requires-dist = [
     { name = "magika", specifier = ">=1.0.3" },
     { name = "ollama", specifier = ">=0.6.2" },
     { name = "pydantic", specifier = ">=2.13.4" },
+    { name = "stemmer", specifier = ">=0.0.4" },
     { name = "tqdm", specifier = ">=4.70.0" },
 ]
 
@@ -2180,6 +2182,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
+name = "stemmer"
+version = "0.0.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/06/ea/50b3cdadc656ee8beaf8fd58fb9b6009dc53cb4d5a6f413a1d4c3b2782ea/stemmer-0.0.4.tar.gz", hash = "sha256:ff8ca5501e7631409694999fa133564d019a30ff4fbf2504ac486114598b3d01", size = 258316, upload-time = "2024-08-14T20:15:57.026Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/97/2a/0b0a420eeaab9eabcca8341b85efa650bef57e0f8609416a20d485621028/stemmer-0.0.4-py3-none-any.whl", hash = "sha256:00c7e4491ecd364424cbe9d44b667c13e33c9d762a4f9d015430a6ea96cf8883", size = 257569, upload-time = "2024-08-14T20:15:55.033Z" },
 ]
 
 [[package]]
