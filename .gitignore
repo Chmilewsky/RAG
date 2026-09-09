@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
-*/__pycache__
+.mypy_cache/
+.pytest_cache/
 /*.txt
 vllm-0.10.1
 *.json

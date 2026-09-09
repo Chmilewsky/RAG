@@ -219,13 +219,7 @@ class FileChunker:
         for chunk in chunked_file.chunks:
             if chunk:
                 for sub_chunk in self.check_chunk_size(chunk):
-                    try:
-                        rel_path = (
-                            data_path.resolve().relative_to(
-                                Path.cwd().resolve()).as_posix())
-                    except ValueError:
-                        rel_path = data_path.as_posix()
-                    sub_chunk.metadata["file_path"] = str(rel_path)
+                    sub_chunk.metadata["file_path"] = str(data_path)
                     sub_chunk.metadata["filename"] = data_path.name
                     dict_chunk = sub_chunk.to_dict()
                     chunk_list.append(dict_chunk)

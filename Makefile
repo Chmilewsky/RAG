@@ -72,4 +72,4 @@ evaldocs:
 
 
 
-.PHONY: install run debug clean fclean lint lint-strict evalcode evaldocs index search search_dataset eval semantic hybrid
+.PHONY: install run debug clean fclean lint lint-strict index search search_dataset answer answer_dataset eval semantic hybrid evalcode evaldoc

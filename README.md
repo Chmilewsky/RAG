@@ -239,6 +239,23 @@ tokens = bm25s.tokenize(text, stemmer=stemmer, stopwords="en")
 
 ## Performance analysis
 
+### Benchmark Evaluation (Official Moulinette)
+
+The retrieval quality was evaluated against the public reference datasets using the official `moulinette` binary ($k=10$, $\text{IoU} \ge 0.05$):
+
+| Dataset | Metric | Target Threshold | Achieved Score | Evaluation Status |
+| :--- | :---: | :---: | :---: | :---: |
+| **Code** (`dataset_code_public.json`) | **Recall@1** | - | **43.4%** | - |
+| | **Recall@3** | - | **61.6%** | - |
+| | **Recall@5** | **≥ 50.0%** | **64.6%** | ✅ **Passed (+14.6%)** |
+| | **Recall@10** | - | **71.7%** | - |
+| **Documentation** (`dataset_docs_public.json`) | **Recall@1** | - | **61.0%** | - |
+| | **Recall@3** | - | **79.0%** | - |
+| | **Recall@5** | **≥ 80.0%** | **83.0%** | ✅ **Passed (+3.0%)** |
+| | **Recall@10** | - | **86.0%** | - |
+
+### Algorithmic Drivers of Retrieval Quality
+
 The retrieval accuracy ($\text{Recall}@k$) and ranking efficiency are directly influenced by the interaction between document chunking granularity and BM25 scoring mechanics:
 
 * **Minimum Chunk Threshold (`min_characters_per_chunk = 310`)**:

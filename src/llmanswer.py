@@ -36,6 +36,7 @@ class MessagePrep:
         return message, sources
 
     def extract_source_text(self, source: MinimalSource) -> str:
+        """Return chunk_txt if available, otherwise slice text from file."""
         if source.chunk_txt:
             return source.chunk_txt
         try:
