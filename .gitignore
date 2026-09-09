@@ -10,4 +10,8 @@ vllm-0.10.1
 *.jsonl
 *.sqlite3
 data/
-moulinette
+moulinette*
+vllm*
+*.tar
+*.tar.gz
+*.zip
