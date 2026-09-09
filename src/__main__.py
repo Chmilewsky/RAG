@@ -1,11 +1,11 @@
-import fire
 import sys
-from src.cli import CLI
 
 
 def main() -> None:
     """Launch the Fire CLI interface"""
     try:
+        import fire
+        from src.cli import CLI
         fire.Fire(CLI)
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")
