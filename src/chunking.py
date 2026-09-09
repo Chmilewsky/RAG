@@ -27,7 +27,7 @@ class ChunkingPipeline:
         self.chunker = FileChunker(chunk_size=chunk_size)
         self.writer = JsonWriter(output_path=self.output_path)
 
-    def __call__(self, *args: Any, **kwds: Any) -> None:
+    def __call__(self) -> None:
         """Allow the instance to be called directly to start processing."""
         self.run()
 
